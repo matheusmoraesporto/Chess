@@ -279,7 +279,14 @@ void ConfigPiece(int id, int row, int col, bool isBlack, Piece piece)
 
 	glBindVertexArray(sprite.vao);
 
-	matrixColors[row][col].setIdPiece(sprite.id);
+	if (isBlack) {
+		int rowBlack = 7 - row;
+		matrixColors[rowBlack][col].setIdPiece(sprite.id);
+	}
+	else
+	{
+		matrixColors[row][col].setIdPiece(sprite.id);
+	}
 }
 
 // Configura as sprites, fazendo a leitura e definindo a geometria
@@ -631,7 +638,7 @@ int main() {
 	float col = 0.0f;
 	float row = 0.0f;
 
-	
+
 
 	// esta para quando clicar com o mouse
 	glfwSetMouseButtonCallback(window, SelectPosition);
