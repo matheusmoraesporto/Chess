@@ -53,21 +53,6 @@ void Tile::generateColor(int row, int col)
 	{
 		if (this->isSelected)
 		{
-			r = 249 / 255.0f;
-			g = 124 / 255.0f;
-			b = 56 / 255.0f;
-		}
-		else
-		{
-			r = 15 / 255.0f;
-			g = 39 / 255.0f;
-			b = 111 / 255.0f;
-		}
-	}
-	else
-	{
-		if (this->isSelected)
-		{
 			r = 255 / 255.0f;
 			g = 155 / 255.0f;
 			b = 73 / 255.0f;
@@ -77,6 +62,21 @@ void Tile::generateColor(int row, int col)
 			r = 204 / 255.0f;
 			g = 238 / 255.0f;
 			b = 255 / 255.0f;
+		}
+	}
+	else
+	{
+		if (this->isSelected)
+		{
+			r = 249 / 255.0f;
+			g = 124 / 255.0f;
+			b = 56 / 255.0f;
+		}
+		else
+		{
+			r = 15 / 255.0f;
+			g = 39 / 255.0f;
+			b = 111 / 255.0f;
 		}
 	}
 
