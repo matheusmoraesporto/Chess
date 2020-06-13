@@ -182,24 +182,24 @@ void DefineGeometry(int id, GameObject& go)
 #pragma region vertices
 	GLfloat vertices1[] = {
 		// positions			  // texture coords
-		20.0f, 155.0f, +0.0f,	  1.0, 1.0f,
-		20.0f, 130.0f, +0.0f,	  1.0f, 0.0f,
-		30.0f, 155.0f, +0.0f,	  0.0f, 1.0f,
+		310.0f, 305.0f, +0.0f,	  1.0, 1.0f,
+		310.0f, 275.0f, +0.0f,	  1.0f, 0.0f,
+		330.0f, 305.0f, +0.0f,	  0.0f, 1.0f,
 
-		30.0f, 155.0f, +0.0f,	  0.0, 1.0f,
-		20.0f, 130.0f, +0.0f,	  1.0f, 0.0f,
-		30.0f, 130.0f, +0.0f,	  0.0f, 0.0f,
+		330.0f, 305.0f, +0.0f,	  0.0, 1.0f,
+		310.0f, 275.0f, +0.0f,	  1.0f, 0.0f,
+		330.0f, 275.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
 	GLfloat vertices2[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		350.0f, 305.0f, +0.0f,	  1.0, 1.0f,
+		350.0f, 275.0f, +0.0f,	  1.0f, 0.0f,
+		370.0f, 305.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		370.0f, 305.0f, +0.0f,	  0.0, 1.0f,
+		340.0f, 275.0f, +0.0f,	  1.0f, 0.0f,
+		370.0f, 275.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
 	GLfloat vertices3[] = {
@@ -933,7 +933,6 @@ int main() {
 
 	glm::mat4 proj = glm::ortho(0.0f, (float)WIDTH, (float)HEIGHT, 0.0f, -1.0f, 1.0f);
 	glm::mat4 matrix = glm::mat4(1);
-	glm::mat4 matrix2 = glm::mat4(1);
 
 	int mapShader_programme = ConnectVertex(map_vertex_shader, map_fragment_shader);
 	int textureShader_programme = ConnectVertex(textureVertex_shader, textureFragment_shader);
@@ -1040,6 +1039,28 @@ int main() {
 		glfwGetWindowSize(window, &screenWidth, &screenHeight);
 		glViewport(0, 0, screenWidth, screenHeight);
 
+		// Desenha as sprites
+		glUseProgram(textureShader_programme);
+
+		glUniformMatrix4fv(glGetUniformLocation(textureShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(projection));
+
+		//Define VAO atual
+		glBindVertexArray(VAO);
+
+		for each (GameObject bs in blackSprites)
+		{
+			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix);
+		}
+
+		for each (GameObject ws in whiteSprites)
+		{
+			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, ws.vao, ws.tid, matrix);
+		}
+
+		glBindVertexArray(1);
+
+		///////////////////////////////////////////////////////////////////////////
+
 		glUseProgram(mapShader_programme);
 
 		//Define VAO atual
@@ -1048,30 +1069,6 @@ int main() {
 		RenderDiamondMap(matrix, mapShader_programme);
 
 		glBindVertexArray(0);
-
-		///////////////////////////////////////////////////////////////////////////
-
-		// Desenha as sprites
-		//glUseProgram(textureShader_programme);
-
-		//glUniformMatrix4fv(glGetUniformLocation(textureShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(projection));
-
-		////Define VAO atual
-		//glBindVertexArray(VAO);
-
-		//for each (GameObject bs in blackSprites)
-		//{
-		//	DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix);
-		//}
-
-		//for each (GameObject ws in whiteSprites)
-		//{
-		//	DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, ws.vao, ws.tid, matrix);
-		//}
-
-		//DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, blackSprites.back().vao, blackSprites.back().tid, matrix);
-
-		//glBindVertexArray(1);
 
 		glfwSwapBuffers(window);
 	}
