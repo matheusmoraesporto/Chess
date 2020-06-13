@@ -76,7 +76,6 @@ void LoadImage(int id, bool isBlack, int row, int col, Piece piece)
 	const char* img = "";
 	float taxaIncremento = 0;
 	float valueZ = 0;
-	char name;
 	vector<Movement> pieceMovement;
 
 	switch (piece)
@@ -157,73 +156,19 @@ void Render(GLuint vao, GLuint texture, int sp)
 }
 
 // Atribuis o offsetx e o offsetY por layer e gameobject
-void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint vao, GLuint tid)
+void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint vao, GLuint tid, glm::mat4 mt)
 {
 	glUniform1f(glGetUniformLocation(sp, "offsetx"), offsetx);
 	glUniform1f(glGetUniformLocation(sp, "offsety"), offsety);
 	glUniform1f(glGetUniformLocation(sp, "layer_z"), z);
+	glUniformMatrix4fv(glGetUniformLocation(sp, "matrix_OBJ"), 1, GL_FALSE, glm::value_ptr(mt));
 
 	Render(vao, tid, sp);
 }
 
 // Define os vertices das sprites. E faz a associação dos VAO e os VBO
-void DefineGeometry(GameObject& go, bool isSprite)
+void DefineGeometry(int id, GameObject& go)
 {
-	GLfloat verticesLayer[] = {
-		// positions			  // texture coords
-		0.0f,   600.0f, +0.0f,	  0.0, 0.0f,
-		0.0f,   0.0f,   +0.0f,	  0.0f, 1.0f,
-		800.0f, 600.0f, +0.0f,	  1.0f, 0.0f,
-
-		800.0f, 600.0f, +0.0f,	  1.0, 0.0f,
-		0.0f,   0.0f,   +0.0f,	  0.0f, 1.0f,
-		800.0f, 0.0f,   +0.0f,	  1.0f, 1.0f,
-	};
-
-	GLfloat verticesSpriteEnemyWhite[] = {
-		// positions			  // texture coords
-		150.0f, -300.0f, +0.0f,	  0.0, 0.0f,
-		150.0f, -150.0f, +0.0f,	  0.0f, 1.0f,
-		250.0f, -300.0f, +0.0f,	  1.0f, 0.0f,
-
-		250.0f, -300.0f, +0.0f,	  1.0, 0.0f,
-		150.0f, -150.0f, +0.0f,	  0.0f, 1.0f,
-		250.0f, -150.0f, +0.0f,	  1.0f, 1.0f,
-	};
-
-	GLfloat verticesSpriteEnemyRed[] = {
-		// positions			  // texture coords
-		550.0f, -650.0f, +0.0f,	  0.0, 0.0f,
-		550.0f, -500.0f, +0.0f,	  0.0f, 1.0f,
-		650.0f, -650.0f, +0.0f,	  1.0f, 0.0f,
-
-		650.0f, -650.0f, +0.0f,	  1.0, 0.0f,
-		550.0f, -500.0f, +0.0f,	  0.0f, 1.0f,
-		650.0f, -500.0f, +0.0f,	  1.0f, 1.0f,
-	};
-
-	GLfloat verticesSpriteEnemyYellow[] = {
-		// positions			  // texture coords
-		350.0f, -500.0f, +0.0f,	  0.0, 0.0f,
-		350.0f, -350.0f, +0.0f,	  0.0f, 1.0f,
-		450.0f, -500.0f, +0.0f,	  1.0f, 0.0f,
-
-		450.0f, -500.0f, +0.0f,	  1.0, 0.0f,
-		350.0f, -350.0f, +0.0f,	  0.0f, 1.0f,
-		450.0f, -350.0f, +0.0f,	  1.0f, 1.0f,
-	};
-
-	GLfloat verticesSpritePlayer[] = {
-		// positions			  // texture coords
-		300.0f, 550.0f, +0.0f,	  0.0, 0.0f,
-		300.0f, 400.0f, +0.0f,	  0.0f, 1.0f,
-		450.0f, 550.0f, +0.0f,	  1.0f, 0.0f,
-
-		450.0f, 550.0f, +0.0f,	  1.0, 0.0f,
-		300.0f, 400.0f, +0.0f,	  0.0f, 1.0f,
-		450.0f, 400.0f, +0.0f,	  1.0f, 1.0f,
-	};
-
 	GLuint VAO, VBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -234,31 +179,461 @@ void DefineGeometry(GameObject& go, bool isSprite)
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	// Game object do tipo player 
-	if (go.id == 4)
+#pragma region vertices
+	GLfloat vertices1[] = {
+		// positions			  // texture coords
+		20.0f, 155.0f, +0.0f,	  1.0, 1.0f,
+		20.0f, 130.0f, +0.0f,	  1.0f, 0.0f,
+		30.0f, 155.0f, +0.0f,	  0.0f, 1.0f,
+
+		30.0f, 155.0f, +0.0f,	  0.0, 1.0f,
+		20.0f, 130.0f, +0.0f,	  1.0f, 0.0f,
+		30.0f, 130.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices2[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices3[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices4[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices5[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices6[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices7[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices8[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices9[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices10[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices11[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices12[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices13[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices14[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices15[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices16[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices17[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices18[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices19[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices20[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices21[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices22[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices23[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices24[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices25[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices26[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices27[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices28[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices29[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices30[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices31[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+
+	GLfloat vertices32[] = {
+		// positions			  // texture coords
+		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+
+		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
+		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+	};
+#pragma endregion
+
+#pragma region "glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)"
+	switch (id)
 	{
-		glBufferData(GL_ARRAY_BUFFER, sizeof(verticesSpritePlayer), verticesSpritePlayer, GL_STATIC_DRAW);
+	case 1:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+		break;
+	case 2:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+		break;
+	case 3:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices3), vertices3, GL_STATIC_DRAW);
+		break;
+	case 4:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices4), vertices4, GL_STATIC_DRAW);
+		break;
+	case 5:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices5), vertices5, GL_STATIC_DRAW);
+		break;
+	case 6:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices6), vertices6, GL_STATIC_DRAW);
+		break;
+	case 7:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices7), vertices7, GL_STATIC_DRAW);
+		break;
+	case 8:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices8), vertices8, GL_STATIC_DRAW);
+		break;
+	case 9:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices9), vertices9, GL_STATIC_DRAW);
+		break;
+	case 10:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices10), vertices10, GL_STATIC_DRAW);
+		break;
+	case 11:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices11), vertices11, GL_STATIC_DRAW);
+		break;
+	case 12:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices12), vertices12, GL_STATIC_DRAW);
+		break;
+	case 13:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices13), vertices13, GL_STATIC_DRAW);
+		break;
+	case 14:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices14), vertices14, GL_STATIC_DRAW);
+		break;
+	case 15:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices15), vertices15, GL_STATIC_DRAW);
+		break;
+	case 16:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices16), vertices16, GL_STATIC_DRAW);
+		break;
+	case 17:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices17), vertices17, GL_STATIC_DRAW);
+		break;
+	case 18:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices18), vertices18, GL_STATIC_DRAW);
+		break;
+	case 19:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices19), vertices19, GL_STATIC_DRAW);
+		break;
+	case 20:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices20), vertices20, GL_STATIC_DRAW);
+		break;
+	case 21:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices21), vertices21, GL_STATIC_DRAW);
+		break;
+	case 22:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices22), vertices22, GL_STATIC_DRAW);
+		break;
+	case 23:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices23), vertices23, GL_STATIC_DRAW);
+		break;
+	case 24:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices24), vertices24, GL_STATIC_DRAW);
+		break;
+	case 25:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices25), vertices25, GL_STATIC_DRAW);
+		break;
+	case 26:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices26), vertices26, GL_STATIC_DRAW);
+		break;
+	case 27:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices27), vertices27, GL_STATIC_DRAW);
+		break;
+	case 28:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices28), vertices28, GL_STATIC_DRAW);
+		break;
+	case 29:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices29), vertices29, GL_STATIC_DRAW);
+		break;
+	case 30:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices30), vertices30, GL_STATIC_DRAW);
+		break;
+	case 31:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices31), vertices31, GL_STATIC_DRAW);
+		break;
+	case 32:
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices32), vertices32, GL_STATIC_DRAW);
+		break;
 	}
-	// Game object do Inimigo vermelho 
-	else if (go.id == 5)
-	{
-		glBufferData(GL_ARRAY_BUFFER, sizeof(verticesSpriteEnemyRed), verticesSpriteEnemyRed, GL_STATIC_DRAW);
-	}
-	// Game object do Inimigo branco
-	else if (go.id == 6)
-	{
-		glBufferData(GL_ARRAY_BUFFER, sizeof(verticesSpriteEnemyWhite), verticesSpriteEnemyWhite, GL_STATIC_DRAW);
-	}
-	// Game object do Inimigo Amarelo
-	else if (go.id == 7)
-	{
-		glBufferData(GL_ARRAY_BUFFER, sizeof(verticesSpriteEnemyYellow), verticesSpriteEnemyYellow, GL_STATIC_DRAW);
-	}
-	// define as outras sprites
-	else
-	{
-		glBufferData(GL_ARRAY_BUFFER, sizeof(verticesLayer), verticesLayer, GL_STATIC_DRAW);
-	}
+#pragma endregion
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(float)));
@@ -275,7 +650,7 @@ void ConfigPiece(int id, int row, int col, bool isBlack, Piece piece)
 
 	GameObject sprite = isBlack ? blackSprites.back() : whiteSprites.back();
 
-	DefineGeometry(isBlack ? blackSprites.back() : whiteSprites.back(), true);
+	DefineGeometry(id, isBlack ? blackSprites.back() : whiteSprites.back());
 
 	glBindVertexArray(sprite.vao);
 
@@ -544,8 +919,6 @@ int main() {
 		"uniform sampler2D sprite;"
 		"uniform float offsetx;"
 		"uniform float offsety;"
-		"uniform float x;"
-		"uniform float y;"
 		"out vec4 frag_color;"
 		"void main () {"
 		"	vec2 tc = vec2((texture_coords.x + offsetx), (texture_coords.y + offsety));"
@@ -559,7 +932,8 @@ int main() {
 	ConfigSprites();
 
 	glm::mat4 proj = glm::ortho(0.0f, (float)WIDTH, (float)HEIGHT, 0.0f, -1.0f, 1.0f);
-	glm::mat4 matrix = glm::mat4(1);;
+	glm::mat4 matrix = glm::mat4(1);
+	glm::mat4 matrix2 = glm::mat4(1);
 
 	int mapShader_programme = ConnectVertex(map_vertex_shader, map_fragment_shader);
 	int textureShader_programme = ConnectVertex(textureVertex_shader, textureFragment_shader);
@@ -611,6 +985,8 @@ int main() {
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	/////////////////////////////////////////////////////////////////
 
 	unsigned int VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
@@ -673,26 +1049,27 @@ int main() {
 
 		glBindVertexArray(0);
 
-		//for each (GameObject var in whiteSprites)
-		//{
-		//	cout << var.vao;
-		//	cout << "\n";
-		//}
-
-		//for each (GameObject var in blackSprites)
-		//{
-		//	cout << var.vao;
-		//	cout << "\n";
-		//}
-
 		///////////////////////////////////////////////////////////////////////////
+
 		// Desenha as sprites
 		//glUseProgram(textureShader_programme);
+
+		//glUniformMatrix4fv(glGetUniformLocation(textureShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		////Define VAO atual
 		//glBindVertexArray(VAO);
 
-		//DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 1.0f, whiteSprites.back().vao, whiteSprites.back().tid);
+		//for each (GameObject bs in blackSprites)
+		//{
+		//	DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix);
+		//}
+
+		//for each (GameObject ws in whiteSprites)
+		//{
+		//	DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, ws.vao, ws.tid, matrix);
+		//}
+
+		//DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, blackSprites.back().vao, blackSprites.back().tid, matrix);
 
 		//glBindVertexArray(1);
 
