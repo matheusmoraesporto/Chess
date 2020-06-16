@@ -1,13 +1,18 @@
 #include "GameObject.h"
 
-GameObject::GameObject(int id, int col, int row, GLuint tid, Piece piece, vector<Movement>movements)
+GameObject::GameObject()
+{
+
+}
+
+GameObject::GameObject(int id, bool isBlack, GLuint tid, Piece piece, vector<Movement>movements)
 {
 	setId(id);
-	setCurrentRow(row);
-	setCurrentCol(col);
 	setTid(tid);
 	setPiece(piece);
 	setMovements(movements);
+	setColor(isBlack ? Color::Black : Color::White);
+	this->isFirstMove = true;
 }
 
 void GameObject::setVao(GLuint value)
@@ -30,17 +35,12 @@ void GameObject::setPiece(Piece value)
 	this->piece = value;
 }
 
-void GameObject::setCurrentRow(int value)
-{
-	this->currentRow = value;
-}
-
-void GameObject::setCurrentCol(int value)
-{
-	this->currentCol = value;
-}
-
 void GameObject::setMovements(vector<Movement>value)
 {
 	this->movements = value;
+}
+
+void GameObject::setColor(Color color)
+{
+	this->color = color;
 }

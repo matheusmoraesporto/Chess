@@ -29,6 +29,9 @@ const int HEIGHT = NUM_COLS * TILE_HEIGHT;
 int BlackQueenVAO;
 int WhiteQueenVAO;
 
+bool canPlayWhite = true;
+bool canPlayBlack = false;
+
 // Tiles
 Tile matrixColors[NUM_ROWS][NUM_COLS] = {};
 
@@ -37,9 +40,6 @@ vector<GameObject> whiteSprites;
 vector<GameObject> blackSprites;
 
 const int sumTilesHeigth = NUM_ROWS * TILE_HEIGHT;
-
-int lastTileSelectedCol = -1;
-int lastTileSelectedRow = -1;
 
 // Array com as posições que poderão ser jogadas, serve para controlar o movimento da peça.
 // Exemplo: se o jogador selecionar a peça bispo, todos os prováveis tiles para onde o bispode pode se mover estarão aqui.
@@ -97,7 +97,7 @@ void LoadImage(int id, bool isBlack, int row, int col, Piece piece)
 
 	case Piece::Pawn:
 		img = isBlack ? "..\\Images\\BlackPawn.png" : "..\\Images\\WhitePawn.png";
-		pieceMovement = { Movement::North };
+		pieceMovement = { isBlack ? Movement::North : Movement::South };
 		break;
 
 	case Piece::Queen:
@@ -133,7 +133,7 @@ void LoadImage(int id, bool isBlack, int row, int col, Piece piece)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		stbi_image_free(data);
 
-		GameObject gameObj = GameObject::GameObject(id, row, col, texture, piece, pieceMovement);
+		GameObject gameObj = GameObject::GameObject(id, isBlack, texture, piece, pieceMovement);
 
 		isBlack ? blackSprites.push_back(gameObj) : whiteSprites.push_back(gameObj);
 	}
@@ -180,6 +180,8 @@ void DefineGeometry(int id, GameObject& go)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 #pragma region vertices
+#pragma region White pieces
+	// White rook
 	GLfloat vertices1[] = {
 		// positions			  // texture coords
 		310.0f, 305.0f, +0.0f,	  1.0, 1.0f,
@@ -191,6 +193,7 @@ void DefineGeometry(int id, GameObject& go)
 		330.0f, 275.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White knight
 	GLfloat vertices2[] = {
 		// positions			  // texture coords
 		350.0f, 285.0f, +0.0f,	  1.0, 1.0f,
@@ -202,6 +205,7 @@ void DefineGeometry(int id, GameObject& go)
 		370.0f, 255.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White bishop
 	GLfloat vertices3[] = {
 		// positions			  // texture coords
 		390.0f, 265.0f, +0.0f,	  1.0, 1.0f,
@@ -213,6 +217,7 @@ void DefineGeometry(int id, GameObject& go)
 		410.0f, 235.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White king
 	GLfloat vertices4[] = {
 		// positions			  // texture coords
 		430.0f, 245.0f, +0.0f,	  1.0, 1.0f,
@@ -224,6 +229,7 @@ void DefineGeometry(int id, GameObject& go)
 		450.0f, 215.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White queen
 	GLfloat vertices5[] = {
 		// positions			  // texture coords
 		470.0f, 225.0f, +0.0f,	  1.0, 1.0f,
@@ -235,6 +241,7 @@ void DefineGeometry(int id, GameObject& go)
 		490.0f, 195.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White bishop
 	GLfloat vertices6[] = {
 		// positions			  // texture coords
 		510.0f, 205.0f, +0.0f,	  1.0, 1.0f,
@@ -246,6 +253,7 @@ void DefineGeometry(int id, GameObject& go)
 		530.0f, 175.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White knight
 	GLfloat vertices7[] = {
 		// positions			  // texture coords
 		550.0f, 185.0f, +0.0f,	  1.0, 1.0f,
@@ -257,6 +265,7 @@ void DefineGeometry(int id, GameObject& go)
 		570.0f, 155.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White rook
 	GLfloat vertices8[] = {
 		// positions			  // texture coords
 		590.0f, 165.0f, +0.0f,	  1.0, 1.0f,
@@ -268,269 +277,295 @@ void DefineGeometry(int id, GameObject& go)
 		610.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White pawn
 	GLfloat vertices9[] = {
 		// positions			  // texture coords
-		590.0f, 165.0f, +0.0f,	  1.0, 1.0f,
-		590.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		610.0f, 165.0f, +0.0f,	  0.0f, 1.0f,
+		270.0f, 285.0f, +0.0f,	  1.0, 1.0f,
+		270.0f, 255.0f, +0.0f,	  1.0f, 0.0f,
+		290.0f, 285.0f, +0.0f,	  0.0f, 1.0f,
 
-		610.0f, 165.0f, +0.0f,	  0.0, 1.0f,
-		590.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		610.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		290.0f, 285.0f, +0.0f,	  0.0, 1.0f,
+		270.0f, 255.0f, +0.0f,	  1.0f, 0.0f,
+		290.0f, 255.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White pawn
 	GLfloat vertices10[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		310.0f, 265.0f, +0.0f,	  1.0, 1.0f,
+		310.0f, 235.0f, +0.0f,	  1.0f, 0.0f,
+		330.0f, 265.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		330.0f, 265.0f, +0.0f,	  0.0, 1.0f,
+		310.0f, 235.0f, +0.0f,	  1.0f, 0.0f,
+		330.0f, 235.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White pawn
 	GLfloat vertices11[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		350.0f, 245.0f, +0.0f,	  1.0, 1.0f,
+		350.0f, 215.0f, +0.0f,	  1.0f, 0.0f,
+		370.0f, 245.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		370.0f, 245.0f, +0.0f,	  0.0, 1.0f,
+		350.0f, 215.0f, +0.0f,	  1.0f, 0.0f,
+		370.0f, 215.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White pawn
 	GLfloat vertices12[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		390.0f, 225.0f, +0.0f,	  1.0, 1.0f,
+		390.0f, 195.0f, +0.0f,	  1.0f, 0.0f,
+		410.0f, 225.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		410.0f, 225.0f, +0.0f,	  0.0, 1.0f,
+		390.0f, 195.0f, +0.0f,	  1.0f, 0.0f,
+		410.0f, 195.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White pawn
 	GLfloat vertices13[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		430.0f, 205.0f, +0.0f,	  1.0, 1.0f,
+		430.0f, 175.0f, +0.0f,	  1.0f, 0.0f,
+		450.0f, 205.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		450.0f, 205.0f, +0.0f,	  0.0, 1.0f,
+		430.0f, 175.0f, +0.0f,	  1.0f, 0.0f,
+		450.0f, 175.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White pawn
 	GLfloat vertices14[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		470.0f, 185.0f, +0.0f,	  1.0, 1.0f,
+		470.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
+		490.0f, 185.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		490.0f, 185.0f, +0.0f,	  0.0, 1.0f,
+		470.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
+		490.0f, 155.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White pawn
 	GLfloat vertices15[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		510.0f, 165.0f, +0.0f,	  1.0, 1.0f,
+		510.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		530.0f, 165.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		530.0f, 165.0f, +0.0f,	  0.0, 1.0f,
+		510.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		530.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// White pawn
 	GLfloat vertices16[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		550.0f, 145.0f, +0.0f,	  1.0, 1.0f,
+		550.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
+		570.0f, 145.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		570.0f, 145.0f, +0.0f,	  0.0, 1.0f,
+		550.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
+		570.0f, 115.0f, +0.0f,	  0.0f, 0.0f,
 	};
-
+#pragma endregion
+#pragma region Black pieces
+	// Black rook
 	GLfloat vertices17[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		30.0f, 165.0f, +0.0f,	  1.0, 1.0f,
+		30.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		50.0f, 165.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		50.0f, 165.0f, +0.0f,	  0.0, 1.0f,
+		30.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		50.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black knight
 	GLfloat vertices18[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		70.0f, 145.0f, +0.0f,	  1.0, 1.0f,
+		70.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
+		90.0f, 145.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		90.0f, 145.0f, +0.0f,	  0.0, 1.0f,
+		70.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
+		90.0f, 115.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black bishop
 	GLfloat vertices19[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		110.0f, 125.0f, +0.0f,	  1.0, 1.0f,
+		110.0f, 95.0f, +0.0f,	  1.0f, 0.0f,
+		130.0f, 125.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		130.0f, 125.0f, +0.0f,	  0.0, 1.0f,
+		110.0f, 95.0f, +0.0f,	  1.0f, 0.0f,
+		130.0f, 95.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black king
 	GLfloat vertices20[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		150.0f, 105.0f, +0.0f,	  1.0, 1.0f,
+		150.0f, 75.0f, +0.0f,	  1.0f, 0.0f,
+		170.0f, 105.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		170.0f, 105.0f, +0.0f,	  0.0, 1.0f,
+		150.0f, 75.0f, +0.0f,	  1.0f, 0.0f,
+		170.0f, 75.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black queen
 	GLfloat vertices21[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		190.0f, 85.0f, +0.0f,	  1.0, 1.0f,
+		190.0f, 55.0f, +0.0f,	  1.0f, 0.0f,
+		210.0f, 85.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		210.0f, 85.0f, +0.0f,	  0.0, 1.0f,
+		190.0f, 55.0f, +0.0f,	  1.0f, 0.0f,
+		210.0f, 55.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black bishop
 	GLfloat vertices22[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		230.0f, 65.0f, +0.0f,	  1.0, 1.0f,
+		230.0f, 35.0f, +0.0f,	  1.0f, 0.0f,
+		250.0f, 65.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		250.0f, 65.0f, +0.0f,	  0.0, 1.0f,
+		230.0f, 35.0f, +0.0f,	  1.0f, 0.0f,
+		250.0f, 35.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black knight
 	GLfloat vertices23[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		270.0f, 45.0f, +0.0f,	  1.0, 1.0f,
+		270.0f, 15.0f, +0.0f,	  1.0f, 0.0f,
+		290.0f, 45.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		290.0f, 45.0f, +0.0f,	  0.0, 1.0f,
+		270.0f, 15.0f, +0.0f,	  1.0f, 0.0f,
+		290.0f, 15.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black rook
 	GLfloat vertices24[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		310.0f, 25.0f, +0.0f,	  1.0, 1.0f,
+		310.0f, -5.0f, +0.0f,	  1.0f, 0.0f,
+		330.0f, 25.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		330.0f, 25.0f, +0.0f,	  0.0, 1.0f,
+		310.0f, -5.0f, +0.0f,	  1.0f, 0.0f,
+		330.0f, -5.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black pawn
 	GLfloat vertices25[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		70.0f, 185.0f, +0.0f,	  1.0, 1.0f,
+		70.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
+		90.0f, 185.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		90.0f, 185.0f, +0.0f,	  0.0, 1.0f,
+		70.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
+		90.0f, 155.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black pawn
 	GLfloat vertices26[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		110.0f, 165.0f, +0.0f,	  1.0, 1.0f,
+		110.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		130.0f, 165.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		130.0f, 165.0f, +0.0f,	  0.0, 1.0f,
+		110.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
+		130.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black pawn
 	GLfloat vertices27[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		150.0f, 145.0f, +0.0f,	  1.0, 1.0f,
+		150.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
+		170.0f, 145.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		170.0f, 145.0f, +0.0f,	  0.0, 1.0f,
+		150.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
+		170.0f, 115.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black pawn
 	GLfloat vertices28[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		190.0f, 125.0f, +0.0f,	  1.0, 1.0f,
+		190.0f, 95.0f, +0.0f,	  1.0f, 0.0f,
+		210.0f, 125.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		210.0f, 125.0f, +0.0f,	  0.0, 1.0f,
+		190.0f, 95.0f, +0.0f,	  1.0f, 0.0f,
+		210.0f, 95.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black pawn
 	GLfloat vertices29[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		230.0f, 105.0f, +0.0f,	  1.0, 1.0f,
+		230.0f, 75.0f, +0.0f,	  1.0f, 0.0f,
+		250.0f, 105.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		250.0f, 105.0f, +0.0f,	  0.0, 1.0f,
+		230.0f, 75.0f, +0.0f,	  1.0f, 0.0f,
+		250.0f, 75.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black pawn
 	GLfloat vertices30[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		270.0f, 85.0f, +0.0f,	  1.0, 1.0f,
+		270.0f, 55.0f, +0.0f,	  1.0f, 0.0f,
+		290.0f, 85.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		290.0f, 85.0f, +0.0f,	  0.0, 1.0f,
+		270.0f, 55.0f, +0.0f,	  1.0f, 0.0f,
+		290.0f, 55.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black pawn
 	GLfloat vertices31[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		310.0f, 65.0f, +0.0f,	  1.0, 1.0f,
+		310.0f, 35.0f, +0.0f,	  1.0f, 0.0f,
+		330.0f, 65.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		330.0f, 65.0f, +0.0f,	  0.0, 1.0f,
+		310.0f, 35.0f, +0.0f,	  1.0f, 0.0f,
+		330.0f, 35.0f, +0.0f,	  0.0f, 0.0f,
 	};
 
+	// Black pawn
 	GLfloat vertices32[] = {
 		// positions			  // texture coords
-		25.0f, 150.0f, +0.0f,	  1.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 150.0f, +0.0f,	  0.0f, 1.0f,
+		350.0f, 45.0f, +0.0f,	  1.0, 1.0f,
+		350.0f, 15.0f, +0.0f,	  1.0f, 0.0f,
+		370.0f, 45.0f, +0.0f,	  0.0f, 1.0f,
 
-		35.0f, 150.0f, +0.0f,	  0.0, 1.0f,
-		25.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		35.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		370.0f, 45.0f, +0.0f,	  0.0, 1.0f,
+		350.0f, 15.0f, +0.0f,	  1.0f, 0.0f,
+		370.0f, 15.0f, +0.0f,	  0.0f, 0.0f,
 	};
+#pragma endregion
 #pragma endregion
 
 #pragma region "glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)"
@@ -655,12 +690,13 @@ void ConfigPiece(int id, int row, int col, bool isBlack, Piece piece)
 	glBindVertexArray(sprite.vao);
 
 	if (isBlack) {
-		int rowBlack = 7 - row;
-		matrixColors[rowBlack][col].setIdPiece(sprite.id);
+
+		matrixColors[row][col].setIdPiece(sprite.id);
 	}
 	else
 	{
-		matrixColors[row][col].setIdPiece(sprite.id);
+		int rowBlack = 7 - row;
+		matrixColors[rowBlack][col].setIdPiece(sprite.id);
 	}
 }
 
@@ -808,9 +844,53 @@ bool TestPointCollision(float RefenceX, float RefenceY, float Bx, float By, floa
 	float alpha = acos(normalABx * normalACx + normalABy * normalACy);
 	float betha = acos(normalACx * normalAPx + normalACy * normalAPy);
 
-	// bool collide = alpha == (theta + betha);
 	bool collide = 0.001 > abs(alpha - (theta + betha));
 	return collide;
+}
+
+GameObject GetPiece(int id)
+{
+	GameObject retorno;
+
+	for each (GameObject white in whiteSprites)
+	{
+		if (white.id == id)
+		{
+			retorno = white;
+			break;
+		}
+	}
+
+	if (retorno.id == 0)
+	{
+		for each (GameObject black in blackSprites)
+		{
+			if (black.id == id)
+			{
+				retorno = black;
+				break;
+			}
+		}
+	}
+
+	return retorno;
+}
+
+void AddSelectedPosition(int r, int c)
+{
+	std::pair<int, int> p = make_pair(r, c);
+	selectedPositions.push_back(p);
+}
+
+void markTile(int r, int c, bool canPlay, bool add)
+{
+	matrixColors[r][c].canPlay = canPlay;
+	matrixColors[r][c].generateColor(r, c);
+
+	if (add)
+	{
+		AddSelectedPosition(r, c);
+	}
 }
 
 void MouseMap(double xPos, double yPos) {
@@ -825,24 +905,142 @@ void MouseMap(double xPos, double yPos) {
 
 	Tile tile = matrixColors[rowClick][columnClick];
 
-	bool isClickValid = false;
-
 	if (TestPointCollision(tile.Ax, tile.Ay, tile.Bx, tile.By, tile.Cx, tile.Cy, xPos, yPos))
 	{
-		isClickValid = true;
-	}
-
-	if (isClickValid && tile.isVisible)
-	{
 		matrixColors[rowClick][columnClick].isSelected = !matrixColors[rowClick][columnClick].isSelected;
-		matrixColors[rowClick][columnClick].generateColor(rowClick, columnClick);
-		lastTileSelectedRow = rowClick;
-		lastTileSelectedCol = columnClick;
 
-		cout << matrixColors[rowClick][columnClick].idPiece;
+		markTile(rowClick, columnClick, true, true);
 
-		std::pair<int, int> p = make_pair(rowClick, columnClick);
-		selectedPositions.push_back(p);
+		GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece);
+
+		// Verifica se for desmarcado, para poder desmarcar as possíveis jogadas
+		if (!matrixColors[rowClick][columnClick].isSelected)
+		{
+			for each (pair<int, int> pos in selectedPositions)
+			{
+				markTile(pos.first, pos.second, false, false);
+			}
+
+			selectedPositions.clear();
+		}
+		else
+		{
+			for each (Movement movement in piece.movements)
+			{
+				if (movement == Movement::North)
+				{
+					int moveNorth = NUM_ROWS;
+
+					if (piece.piece == Piece::Pawn)
+					{
+						moveNorth = piece.isFirstMove ? 2 : 1;
+
+						// Regra para ataque do pião
+						if (rowClick + 1 < NUM_ROWS
+							&& columnClick + 1 < NUM_COLS
+							&& matrixColors[rowClick + 1][columnClick + 1].idPiece > 0
+							&& GetPiece(matrixColors[rowClick + 1][columnClick + 1].idPiece).color != piece.color)
+						{
+							markTile(rowClick + 1, columnClick + 1, true, true);
+						}
+
+						if (rowClick + 1 < NUM_ROWS
+							&& columnClick - 1 > 0
+							&& matrixColors[rowClick + 1][columnClick - 1].idPiece > 0
+							&& GetPiece(matrixColors[rowClick + 1][columnClick - 1].idPiece).color != piece.color)
+						{
+							markTile(rowClick + 1, columnClick - 1, true, true);
+						}
+					}
+
+					for (size_t i = rowClick; i <= moveNorth; i++)
+					{
+						if (rowClick + i < NUM_ROWS && !matrixColors[rowClick + 1][columnClick].canPlay)
+						{
+							markTile(rowClick + i, columnClick, true, true);
+						}
+					}
+				}
+				if (movement == Movement::East)
+				{
+					int moveEast = columnClick;
+
+					for (size_t i = moveEast; i > 0; i--)
+					{
+						if (columnClick - i >= 0 && !matrixColors[rowClick][columnClick - 1].canPlay)
+						{
+							markTile(rowClick, columnClick - i, true, true);
+						}
+					}
+				}
+				else if (movement == Movement::InL)
+				{
+
+				}
+				else if (movement == Movement::Northeast)
+				{
+
+				}
+				else if (movement == Movement::Northwest)
+				{
+
+				}
+				else if (movement == Movement::South)
+				{
+					int moveSouth = rowClick;
+
+					if (piece.piece == Piece::Pawn)
+					{
+						moveSouth = piece.isFirstMove ? 2 : 1;
+
+						// Regra para ataque do pião
+						if (rowClick - 1 > 0
+							&& columnClick + 1 < NUM_COLS
+							&& matrixColors[rowClick - 1][columnClick + 1].idPiece > 0
+							&& GetPiece(matrixColors[rowClick - 1][columnClick + 1].idPiece).color != piece.color)
+						{
+							markTile(rowClick - 1, columnClick + 1, true, true);
+						}
+
+						if (rowClick - 1 > 0
+							&& columnClick - 1 >= 0
+							&& matrixColors[rowClick - 1][columnClick - 1].idPiece > 0
+							&& GetPiece(matrixColors[rowClick - 1][columnClick - 1].idPiece).color != piece.color)
+						{
+							markTile(rowClick - 1, columnClick - 1, true, true);
+						}
+					}
+
+					for (size_t i = moveSouth; i > 0; i--)
+					{
+						if (rowClick - 1 > 0 && !matrixColors[rowClick - 1][columnClick].canPlay)
+						{
+							markTile(rowClick - i, columnClick, true, true);
+						}
+					}
+				}
+				else if (movement == Movement::Southeast)
+				{
+
+				}
+				else if (movement == Movement::Southwest)
+				{
+
+				}
+				else if (movement == Movement::West)
+				{
+					int moveWest = NUM_COLS;
+
+					for (size_t i = columnClick; i < moveWest; i++)
+					{
+						if (columnClick + i < NUM_COLS && !matrixColors[rowClick][columnClick + 1].canPlay)
+						{
+							markTile(rowClick, columnClick + i, true, true);
+						}
+					}
+				}
+			}
+		}
 	}
 }
 

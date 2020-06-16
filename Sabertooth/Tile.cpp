@@ -10,6 +10,7 @@ Tile::Tile(int id, float x0, float y0, float th, float tw)
 	this->idPiece = 0;
 	isVisible = true;
 	isSelected = false;
+	canPlay = false;
 
 	//left point
 	Ax = x0;
@@ -27,19 +28,6 @@ Tile::Tile(int id, float x0, float y0, float th, float tw)
 	Dx = x0 + tw;
 	Dy = y0 + th / 2.0f;
 }
-//
-//void Tile::setColor(int R, int G, int B)
-//{
-//	float r;
-//	float g;
-//	float b;
-//
-//	r = R / 255.0f;
-//	g = G / 255.0f;
-//	b = B / 255.0f;
-//
-//	colorsRGB = glm::vec3(r, g, b);
-//}
 
 void Tile::generateColor(int row, int col)
 {
@@ -51,7 +39,7 @@ void Tile::generateColor(int row, int col)
 
 	if (isLight)
 	{
-		if (this->isSelected)
+		if (this->canPlay)
 		{
 			r = 255 / 255.0f;
 			g = 155 / 255.0f;
@@ -66,7 +54,7 @@ void Tile::generateColor(int row, int col)
 	}
 	else
 	{
-		if (this->isSelected)
+		if (this->canPlay)
 		{
 			r = 249 / 255.0f;
 			g = 124 / 255.0f;
