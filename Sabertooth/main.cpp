@@ -45,7 +45,7 @@ const int sumTilesHeigth = NUM_ROWS * TILE_HEIGHT;
 // Exemplo: se o jogador selecionar a peça bispo, todos os prováveis tiles para onde o bispode pode se mover estarão aqui.
 vector<pair<int, int>> selectedPositions;
 
-glm::mat4 matrix_translaction = glm::mat4(1);
+glm::mat4 matrix_translaction = glm::mat4(1.0f);
 glm::mat4 matrix = glm::mat4(1);
 unsigned int transformloc;
 
@@ -170,8 +170,31 @@ void Transform(glm::mat4& mt, unsigned int& tl, int sp, float x, float y, float 
 }
 
 // Atribuis o offsetx e o offsetY por layer e gameobject
-void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint vao, GLuint tid, glm::mat4 mt)
+void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint vao, GLuint tid, glm::mat4 mt, GameObject& go)
 {
+	//if (go.translate)
+	//{
+	//	for each (GameObject ws in whiteSprites)
+	//	{
+	//		if (go.id == ws.id)
+	//		{
+	//			ws.translate = false;
+	//			break;
+	//		}
+	//	}
+
+	//	for each (GameObject bs in blackSprites)
+	//	{
+	//		if (go.id == bs.id)
+	//		{
+	//			bs.translate = false;
+	//			break;
+	//		}
+	//	}
+
+		Transform(matrix_translaction, transformloc, sp, 1.0f, 1.0f, 0.51f);
+	//}
+
 	glUniform1f(glGetUniformLocation(sp, "offsetx"), offsetx);
 	glUniform1f(glGetUniformLocation(sp, "offsety"), offsety);
 	glUniform1f(glGetUniformLocation(sp, "layer_z"), z);
@@ -909,178 +932,252 @@ void markTile(int r, int c, bool canPlay, bool add)
 
 void markMovements(int rowClick, int columnClick, GameObject piece)
 {
-	bool playBlack = piece.color == Color::Black && canPlayBlack;
-	bool playWhite = piece.color == Color::White && canPlayWhite;
-
-	if (playBlack || playWhite)
+	for each (Movement movement in piece.movements)
 	{
-		for each (Movement movement in piece.movements)
+		if (movement == Movement::North)
 		{
-			if (movement == Movement::North)
+			int moveNorth = NUM_ROWS;
+
+			if (piece.piece == Piece::Pawn)
 			{
-				int moveNorth = NUM_ROWS;
+				// Define um movimento a mais, pois a condição do for é < e não <=
+				moveNorth = piece.isFirstMove ? 3 : 2;
 
-				if (piece.piece == Piece::Pawn)
-				{
-					// Define um movimento a mais, pois a condição do for é < e não <=
-					moveNorth = piece.isFirstMove ? 3 : 2;
-
-					// Regra para ataque do pião
-					if (rowClick + 1 < NUM_ROWS
-						&& columnClick + 1 < NUM_COLS
-						&& matrixColors[rowClick + 1][columnClick + 1].idPiece > 0
-						&& GetPiece(matrixColors[rowClick + 1][columnClick + 1].idPiece).color != piece.color)
-					{
-						markTile(rowClick + 1, columnClick + 1, true, true);
-					}
-
-					if (rowClick + 1 < NUM_ROWS
-						&& columnClick - 1 > 0
-						&& matrixColors[rowClick + 1][columnClick - 1].idPiece > 0
-						&& GetPiece(matrixColors[rowClick + 1][columnClick - 1].idPiece).color != piece.color)
-					{
-						markTile(rowClick + 1, columnClick - 1, true, true);
-					}
-				}
-
-				if (piece.piece == Piece::King)
-				{
-					moveNorth = 2;
-				}
-
-				for (size_t i = 1; i < moveNorth; i++)
-				{
-					if (rowClick + i < NUM_ROWS)
-					{
-						GameObject nextTile = GetPiece(matrixColors[rowClick + i][columnClick].idPiece);
-
-						if (nextTile.color == piece.color)
-						{
-							break;
-						}
-
-						markTile(rowClick + i, columnClick, true, true);
-
-						if (nextTile.color != piece.color && nextTile.color != NULL)
-						{
-							break;
-						}
-					}
-				}
-			}
-			else if (movement == Movement::East)
-			{
-				int moveEast = NUM_COLS;
-
-				if (piece.piece == Piece::King)
-				{
-					moveEast = 1;
-				}
-
-				for (size_t i = 1; i <= moveEast; i++)
-				{
-					if (columnClick - i < NUM_ROWS)
-					{
-						GameObject nextTile = GetPiece(matrixColors[rowClick][columnClick - i].idPiece);
-
-						if (nextTile.color == piece.color)
-						{
-							break;
-						}
-
-						markTile(rowClick, columnClick - i, true, true);
-
-						if (nextTile.color != piece.color && nextTile.color != NULL)
-						{
-							break;
-						}
-					}
-				}
-			}
-			else if (movement == Movement::InL)
-			{
-				// Sobe para o oeste e para o norte
-				if (rowClick + 1 < NUM_COLS
-					&& columnClick + 2 < NUM_COLS
-					&& GetPiece(matrixColors[rowClick + 1][columnClick + 2].idPiece).color != piece.color)
-				{
-					markTile(rowClick + 1, columnClick + 2, true, true);
-				}
-
-				if (rowClick + 2 < NUM_COLS
+				// Regra para ataque do pião
+				if (rowClick + 1 < NUM_ROWS
 					&& columnClick + 1 < NUM_COLS
-					&& GetPiece(matrixColors[rowClick + 2][columnClick + 1].idPiece).color != piece.color)
+					&& matrixColors[rowClick + 1][columnClick + 1].idPiece > 0
+					&& GetPiece(matrixColors[rowClick + 1][columnClick + 1].idPiece).color != piece.color)
 				{
-					markTile(rowClick + 2, columnClick + 1, true, true);
+					markTile(rowClick + 1, columnClick + 1, true, true);
 				}
 
-				// Desce para o leste e sobe para o norte
-				if (rowClick + 1 < NUM_COLS
-					&& columnClick - 2 >= 0
-					&& GetPiece(matrixColors[rowClick + 1][columnClick - 2].idPiece).color != piece.color)
+				if (rowClick + 1 < NUM_ROWS
+					&& columnClick - 1 > 0
+					&& matrixColors[rowClick + 1][columnClick - 1].idPiece > 0
+					&& GetPiece(matrixColors[rowClick + 1][columnClick - 1].idPiece).color != piece.color)
 				{
-					markTile(rowClick + 1, columnClick - 2, true, true);
+					markTile(rowClick + 1, columnClick - 1, true, true);
+				}
+			}
+
+			if (piece.piece == Piece::King)
+			{
+				moveNorth = 2;
+			}
+
+			for (size_t i = 1; i < moveNorth; i++)
+			{
+				if (rowClick + i < NUM_ROWS)
+				{
+					GameObject nextTile = GetPiece(matrixColors[rowClick + i][columnClick].idPiece);
+
+					if (nextTile.color == piece.color)
+					{
+						break;
+					}
+
+					markTile(rowClick + i, columnClick, true, true);
+
+					if (nextTile.color != piece.color && nextTile.color != NULL)
+					{
+						break;
+					}
+				}
+			}
+		}
+		else if (movement == Movement::East)
+		{
+			int moveEast = NUM_COLS;
+
+			if (piece.piece == Piece::King)
+			{
+				moveEast = 1;
+			}
+
+			for (size_t i = 1; i <= moveEast; i++)
+			{
+				if (columnClick - i < NUM_ROWS)
+				{
+					GameObject nextTile = GetPiece(matrixColors[rowClick][columnClick - i].idPiece);
+
+					if (nextTile.color == piece.color)
+					{
+						break;
+					}
+
+					markTile(rowClick, columnClick - i, true, true);
+
+					if (nextTile.color != piece.color && nextTile.color != NULL)
+					{
+						break;
+					}
+				}
+			}
+		}
+		else if (movement == Movement::InL)
+		{
+			// Sobe para o oeste e para o norte
+			if (rowClick + 1 < NUM_COLS
+				&& columnClick + 2 < NUM_COLS
+				&& GetPiece(matrixColors[rowClick + 1][columnClick + 2].idPiece).color != piece.color)
+			{
+				markTile(rowClick + 1, columnClick + 2, true, true);
+			}
+
+			if (rowClick + 2 < NUM_COLS
+				&& columnClick + 1 < NUM_COLS
+				&& GetPiece(matrixColors[rowClick + 2][columnClick + 1].idPiece).color != piece.color)
+			{
+				markTile(rowClick + 2, columnClick + 1, true, true);
+			}
+
+			// Desce para o leste e sobe para o norte
+			if (rowClick + 1 < NUM_COLS
+				&& columnClick - 2 >= 0
+				&& GetPiece(matrixColors[rowClick + 1][columnClick - 2].idPiece).color != piece.color)
+			{
+				markTile(rowClick + 1, columnClick - 2, true, true);
+			}
+
+			if (rowClick + 2 < NUM_COLS
+				&& columnClick - 1 >= 0
+				&& GetPiece(matrixColors[rowClick + 2][columnClick - 1].idPiece).color != piece.color)
+			{
+				markTile(rowClick + 2, columnClick - 1, true, true);
+			}
+
+			// Desce para o leste e desce para o sul
+			if (rowClick - 1 >= 0
+				&& columnClick - 2 >= 0
+				&& GetPiece(matrixColors[rowClick - 1][columnClick - 2].idPiece).color != piece.color)
+			{
+				markTile(rowClick - 1, columnClick - 2, true, true);
+			}
+
+			if (rowClick - 2 >= 0
+				&& columnClick - 1 >= 0
+				&& GetPiece(matrixColors[rowClick - 2][columnClick - 1].idPiece).color != piece.color)
+			{
+				markTile(rowClick - 2, columnClick - 1, true, true);
+			}
+
+			// Sobe para o oeste e desce para o sul
+			if (rowClick - 1 >= 0
+				&& columnClick + 2 < NUM_COLS
+				&& GetPiece(matrixColors[rowClick - 1][columnClick + 2].idPiece).color != piece.color)
+			{
+				markTile(rowClick - 1, columnClick + 2, true, true);
+			}
+
+			if (rowClick - 2 >= 0
+				&& columnClick + 1 < NUM_COLS
+				&& GetPiece(matrixColors[rowClick - 2][columnClick + 1].idPiece).color != piece.color)
+			{
+				markTile(rowClick - 2, columnClick + 1, true, true);
+			}
+		}
+		else if (movement == Movement::Northeast)
+		{
+			int moveNortheast = NUM_COLS;
+
+			if (piece.piece == Piece::King)
+			{
+				moveNortheast = 2;
+			}
+
+			for (size_t i = 1; i < moveNortheast; i++)
+			{
+				GameObject nextTile = GetPiece(matrixColors[rowClick + i][columnClick - i].idPiece);
+
+				if (nextTile.color == piece.color)
+				{
+					break;
 				}
 
-				if (rowClick + 2 < NUM_COLS
-					&& columnClick - 1 >= 0
-					&& GetPiece(matrixColors[rowClick + 2][columnClick - 1].idPiece).color != piece.color)
+				if (rowClick + i < NUM_ROWS && columnClick - i < NUM_ROWS)
 				{
-					markTile(rowClick + 2, columnClick - 1, true, true);
+					markTile(rowClick + i, columnClick - i, true, true);
 				}
 
-				// Desce para o leste e desce para o sul
-				if (rowClick - 1 >= 0
-					&& columnClick - 2 >= 0
-					&& GetPiece(matrixColors[rowClick - 1][columnClick - 2].idPiece).color != piece.color)
+				if (nextTile.color != piece.color && nextTile.color != NULL)
 				{
-					markTile(rowClick - 1, columnClick - 2, true, true);
+					break;
+				}
+			}
+		}
+		else if (movement == Movement::Northwest)
+		{
+			int moveNorthwest = NUM_ROWS;
+
+			if (piece.piece == Piece::King)
+			{
+				moveNorthwest = 2;
+			}
+
+			for (size_t i = 1; i < moveNorthwest; i++)
+			{
+				GameObject nextTile = GetPiece(matrixColors[rowClick + i][columnClick + i].idPiece);
+
+				if (nextTile.color == piece.color)
+				{
+					break;
 				}
 
-				if (rowClick - 2 >= 0
-					&& columnClick - 1 >= 0
-					&& GetPiece(matrixColors[rowClick - 2][columnClick - 1].idPiece).color != piece.color)
+				if (rowClick + i < NUM_ROWS && columnClick + i < NUM_COLS)
 				{
-					markTile(rowClick - 2, columnClick - 1, true, true);
+					markTile(rowClick + i, columnClick + i, true, true);
 				}
 
-				// Sobe para o oeste e desce para o sul
-				if (rowClick - 1 >= 0
-					&& columnClick + 2 < NUM_COLS
-					&& GetPiece(matrixColors[rowClick - 1][columnClick + 2].idPiece).color != piece.color)
+				if (nextTile.color != piece.color && nextTile.color != NULL)
 				{
-					markTile(rowClick - 1, columnClick + 2, true, true);
+					break;
 				}
+			}
+		}
+		else if (movement == Movement::South)
+		{
+			int moveSouth = NUM_ROWS;
 
-				if (rowClick - 2 >= 0
+			if (piece.piece == Piece::Pawn)
+			{
+				moveSouth = piece.isFirstMove ? 2 : 1;
+
+				// Regra para ataque do pião
+				if (rowClick - 1 > 0
 					&& columnClick + 1 < NUM_COLS
-					&& GetPiece(matrixColors[rowClick - 2][columnClick + 1].idPiece).color != piece.color)
+					&& matrixColors[rowClick - 1][columnClick + 1].idPiece > 0
+					&& GetPiece(matrixColors[rowClick - 1][columnClick + 1].idPiece).color != piece.color)
 				{
-					markTile(rowClick - 2, columnClick + 1, true, true);
+					markTile(rowClick - 1, columnClick + 1, true, true);
+				}
+
+				if (rowClick - 1 > 0
+					&& columnClick - 1 >= 0
+					&& matrixColors[rowClick - 1][columnClick - 1].idPiece > 0
+					&& GetPiece(matrixColors[rowClick - 1][columnClick - 1].idPiece).color != piece.color)
+				{
+					markTile(rowClick - 1, columnClick - 1, true, true);
 				}
 			}
-			else if (movement == Movement::Northeast)
+
+			if (piece.piece == Piece::King)
 			{
-				int moveNortheast = NUM_COLS;
+				moveSouth = 1;
+			}
 
-				if (piece.piece == Piece::King)
+			for (size_t i = 1; i <= moveSouth; i++)
+			{
+				if (rowClick - i < NUM_ROWS)
 				{
-					moveNortheast = 2;
-				}
-
-				for (size_t i = 1; i < moveNortheast; i++)
-				{
-					GameObject nextTile = GetPiece(matrixColors[rowClick + i][columnClick - i].idPiece);
+					GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick].idPiece);
 
 					if (nextTile.color == piece.color)
 					{
 						break;
 					}
 
-					if (rowClick + i < NUM_ROWS && columnClick - i < NUM_ROWS)
-					{
-						markTile(rowClick + i, columnClick - i, true, true);
-					}
+					markTile(rowClick - i, columnClick, true, true);
 
 					if (nextTile.color != piece.color && nextTile.color != NULL)
 					{
@@ -1088,170 +1185,90 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 					}
 				}
 			}
-			else if (movement == Movement::Northwest)
-			{
-				int moveNorthwest = NUM_ROWS;
+		}
+		else if (movement == Movement::Southeast)
+		{
+			int moveSoutheast = rowClick;
 
-				if (piece.piece == Piece::King)
+			if (piece.piece == Piece::King)
+			{
+				moveSoutheast = 2;
+			}
+
+			for (size_t i = 1; i < moveSoutheast; i++)
+			{
+				GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick - i].idPiece);
+
+				if (nextTile.color == piece.color)
 				{
-					moveNorthwest = 2;
+					break;
 				}
 
-				for (size_t i = 1; i < moveNorthwest; i++)
+				if (rowClick - i >= 0 && columnClick - i <= NUM_COLS)
 				{
-					GameObject nextTile = GetPiece(matrixColors[rowClick + i][columnClick + i].idPiece);
+					markTile(rowClick - i, columnClick - i, true, true);
+				}
+
+				if (nextTile.color != piece.color && nextTile.color != NULL)
+				{
+					break;
+				}
+			}
+		}
+		else if (movement == Movement::Southwest)
+		{
+			int moveSouthwest = NUM_ROWS;
+
+			if (piece.piece == Piece::King)
+			{
+				moveSouthwest = 2;
+			}
+
+			for (size_t i = 1; i < moveSouthwest; i++)
+			{
+				GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick + i].idPiece);
+
+				if (nextTile.color == piece.color)
+				{
+					break;
+				}
+
+				if (rowClick - i >= 0 && columnClick + i < NUM_COLS)
+				{
+					markTile(rowClick - i, columnClick + i, true, true);
+				}
+
+				if (nextTile.color != piece.color && nextTile.color != NULL)
+				{
+					break;
+				}
+			}
+		}
+		else if (movement == Movement::West)
+		{
+			int moveWest = NUM_COLS;
+
+			if (piece.piece == Piece::King)
+			{
+				moveWest = 1;
+			}
+
+			for (size_t i = 1; i <= moveWest; i++)
+			{
+				if (columnClick + i < NUM_ROWS)
+				{
+					GameObject nextTile = GetPiece(matrixColors[rowClick][columnClick + i].idPiece);
 
 					if (nextTile.color == piece.color)
 					{
 						break;
 					}
 
-					if (rowClick + i < NUM_ROWS && columnClick + i < NUM_COLS)
-					{
-						markTile(rowClick + i, columnClick + i, true, true);
-					}
+					markTile(rowClick, columnClick + i, true, true);
 
 					if (nextTile.color != piece.color && nextTile.color != NULL)
 					{
 						break;
-					}
-				}
-			}
-			else if (movement == Movement::South)
-			{
-				int moveSouth = NUM_ROWS;
-
-				if (piece.piece == Piece::Pawn)
-				{
-					moveSouth = piece.isFirstMove ? 2 : 1;
-
-					// Regra para ataque do pião
-					if (rowClick - 1 > 0
-						&& columnClick + 1 < NUM_COLS
-						&& matrixColors[rowClick - 1][columnClick + 1].idPiece > 0
-						&& GetPiece(matrixColors[rowClick - 1][columnClick + 1].idPiece).color != piece.color)
-					{
-						markTile(rowClick - 1, columnClick + 1, true, true);
-					}
-
-					if (rowClick - 1 > 0
-						&& columnClick - 1 >= 0
-						&& matrixColors[rowClick - 1][columnClick - 1].idPiece > 0
-						&& GetPiece(matrixColors[rowClick - 1][columnClick - 1].idPiece).color != piece.color)
-					{
-						markTile(rowClick - 1, columnClick - 1, true, true);
-					}
-				}
-
-				if (piece.piece == Piece::King)
-				{
-					moveSouth = 1;
-				}
-
-				for (size_t i = 1; i <= moveSouth; i++)
-				{
-					if (rowClick - i < NUM_ROWS)
-					{
-						GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick].idPiece);
-
-						if (nextTile.color == piece.color)
-						{
-							break;
-						}
-
-						markTile(rowClick - i, columnClick, true, true);
-
-						if (nextTile.color != piece.color && nextTile.color != NULL)
-						{
-							break;
-						}
-					}
-				}
-			}
-			else if (movement == Movement::Southeast)
-			{
-				int moveSoutheast = rowClick;
-
-				if (piece.piece == Piece::King)
-				{
-					moveSoutheast = 2;
-				}
-
-				for (size_t i = 1; i < moveSoutheast; i++)
-				{
-					GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick - i].idPiece);
-
-					if (nextTile.color == piece.color)
-					{
-						break;
-					}
-
-					if (rowClick - i >= 0 && columnClick - i <= NUM_COLS)
-					{
-						markTile(rowClick - i, columnClick - i, true, true);
-					}
-
-					if (nextTile.color != piece.color && nextTile.color != NULL)
-					{
-						break;
-					}
-				}
-			}
-			else if (movement == Movement::Southwest)
-			{
-				int moveSouthwest = NUM_ROWS;
-
-				if (piece.piece == Piece::King)
-				{
-					moveSouthwest = 2;
-				}
-
-				for (size_t i = 1; i < moveSouthwest; i++)
-				{
-					GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick + i].idPiece);
-
-					if (nextTile.color == piece.color)
-					{
-						break;
-					}
-
-					if (rowClick - i >= 0 && columnClick + i < NUM_COLS)
-					{
-						markTile(rowClick - i, columnClick + i, true, true);
-					}
-
-					if (nextTile.color != piece.color && nextTile.color != NULL)
-					{
-						break;
-					}
-				}
-			}
-			else if (movement == Movement::West)
-			{
-				int moveWest = NUM_COLS;
-
-				if (piece.piece == Piece::King)
-				{
-					moveWest = 1;
-				}
-
-				for (size_t i = 1; i <= moveWest; i++)
-				{
-					if (columnClick + i < NUM_ROWS)
-					{
-						GameObject nextTile = GetPiece(matrixColors[rowClick][columnClick + i].idPiece);
-
-						if (nextTile.color == piece.color)
-						{
-							break;
-						}
-
-						markTile(rowClick, columnClick + i, true, true);
-
-						if (nextTile.color != piece.color && nextTile.color != NULL)
-						{
-							break;
-						}
 					}
 				}
 			}
@@ -1273,10 +1290,20 @@ void MouseMap(double xPos, double yPos) {
 
 	if (TestPointCollision(tile.Ax, tile.Ay, tile.Bx, tile.By, tile.Cx, tile.Cy, xPos, yPos))
 	{
+		GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece);
+
 		// Verifica se for desmarcado, para poder desmarcar as possíveis jogadas
 		if (matrixColors[rowClick][columnClick].canPlay)
 		{
-			matrixColors[rowClick][columnClick].isSelected = !matrixColors[rowClick][columnClick].isSelected;
+			if (!tile.isSelected)
+			{
+				canPlayBlack = canPlayWhite;
+				canPlayWhite = !canPlayBlack;
+			}
+
+			piece.translate = true;
+
+			matrixColors[rowClick][columnClick].isSelected = false;
 
 			for each (pair<int, int> pos in selectedPositions)
 			{
@@ -1285,19 +1312,19 @@ void MouseMap(double xPos, double yPos) {
 
 			selectedPositions.clear();
 		}
-		else if (selectedPositions.empty()) // Já terá adicionado o tile selecionado, então não estará vazio mais, apenas terá o tile selecionado
+		else if (selectedPositions.empty() && tile.idPiece > 0) // Já terá adicionado o tile selecionado, então não estará vazio mais, apenas terá o tile selecionado
 		{
-			matrixColors[rowClick][columnClick].isSelected = !matrixColors[rowClick][columnClick].isSelected;
+			bool playBlack = piece.color == Color::Black && canPlayBlack;
+			bool playWhite = piece.color == Color::White && canPlayWhite;
 
-			markTile(rowClick, columnClick, true, true);
+			if (playBlack || playWhite)
+			{
+				matrixColors[rowClick][columnClick].isSelected = !matrixColors[rowClick][columnClick].isSelected;
 
-			GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece);
+				markTile(rowClick, columnClick, true, true);
 
-			markMovements(rowClick, columnClick, piece);
-
-			Transform(matrix_translaction, transformloc, textureShader_programme, 50.0f, 50.0f, 0.51f);
-
-			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, piece.vao, piece.tid, matrix);
+				markMovements(rowClick, columnClick, piece);
+			}
 		}
 	}
 }
@@ -1377,11 +1404,10 @@ int main() {
 		"uniform float offsety;"
 		"out vec4 frag_color;"
 		"void main () {"
-		"	vec2 tc = vec2((texture_coords.x + offsetx), (texture_coords.y + offsety));"
-		"	vec4 texel = texture(sprite, tc);"
-		"	if (texel.a < 0.5)"
-		"		discard;"
-		"	frag_color = texel;"
+		" vec4 texel = texture(sprite, vec2(texture_coords.x + offsetx, texture_coords.y + offsety));"
+		" if (texel.a < 0.5) "
+		"	discard; "
+		" frag_color = texel;"
 		"}";
 
 	CreateMatrixColors();
@@ -1473,8 +1499,6 @@ int main() {
 	transformloc = glGetUniformLocation(textureShader_programme, "matrix");
 	glUniformMatrix4fv(transformloc, 1, GL_FALSE, glm::value_ptr(matrix));
 
-
-
 	// esta para quando clicar com o mouse
 	glfwSetMouseButtonCallback(window, SelectPosition);
 
@@ -1502,19 +1526,19 @@ int main() {
 		// Desenha as sprites
 		glUseProgram(textureShader_programme);
 
-		glUniformMatrix4fv(glGetUniformLocation(textureShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(textureShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
 		//Define VAO atual
 		glBindVertexArray(VAO);
 
 		for each (GameObject bs in blackSprites)
 		{
-			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix);
+			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix, bs);
 		}
 
 		for each (GameObject ws in whiteSprites)
 		{
-			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, ws.vao, ws.tid, matrix);
+			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, ws.vao, ws.tid, matrix, ws);
 		}
 
 		glBindVertexArray(1);
