@@ -19,7 +19,7 @@ public:
 	void setMovements(vector<Movement>movements);
 	void setColor(Color value);
 	int vao, id, tid, currentRow, currentCol, quantidadeMov;
-	bool isFirstMove;
+	bool isFirstMove, translate;
 	Piece piece;
 	vector<Movement>movements;
 	Color color;
