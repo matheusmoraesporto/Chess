@@ -51,6 +51,8 @@ unsigned int transformloc;
 
 int textureShader_programme;
 
+int goDown = 1.0f;
+
 #pragma endregion
 
 int ConnectVertex(const char* v_shader, const char* f_shader)
@@ -172,31 +174,31 @@ void Transform(glm::mat4& mt, unsigned int& tl, int sp, float x, float y, float 
 // Atribuis o offsetx e o offsetY por layer e gameobject
 void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint vao, GLuint tid, glm::mat4 mt, GameObject& go)
 {
-	//if (go.translate)
-	//{
-	//	for each (GameObject ws in whiteSprites)
-	//	{
-	//		if (go.id == ws.id)
-	//		{
-	//			ws.translate = false;
-	//			break;
-	//		}
-	//	}
+	if (go.translate)
+	{
+		for each (GameObject ws in whiteSprites)
+		{
+			if (go.id == ws.id)
+			{
+				ws.translate = false;
+				break;
+			}
+		}
 
-	//	for each (GameObject bs in blackSprites)
-	//	{
-	//		if (go.id == bs.id)
-	//		{
-	//			bs.translate = false;
-	//			break;
-	//		}
-	//	}
+		for each (GameObject bs in blackSprites)
+		{
+			if (go.id == bs.id)
+			{
+				bs.translate = false;
+				break;
+			}
+		}
 
-		Transform(matrix_translaction, transformloc, sp, 1.0f, 1.0f, 0.51f);
-	//}
+		Transform(matrix_translaction, transformloc, sp, goDown, 1.0f, 0.51f);
+	}
 
 	glUniform1f(glGetUniformLocation(sp, "offsetx"), offsetx);
-	glUniform1f(glGetUniformLocation(sp, "offsety"), offsety);
+	glUniform1f(glGetUniformLocation(sp, "offsety"), goDown * 0.3f);
 	glUniform1f(glGetUniformLocation(sp, "layer_z"), z);
 	glUniformMatrix4fv(glGetUniformLocation(sp, "matrix"), 1, GL_FALSE, glm::value_ptr(mt));
 
@@ -885,7 +887,7 @@ bool TestPointCollision(float RefenceX, float RefenceY, float Bx, float By, floa
 	return collide;
 }
 
-GameObject GetPiece(int id)
+GameObject GetPiece(int id, bool setTranslate = false)
 {
 	GameObject retorno;
 
@@ -894,6 +896,12 @@ GameObject GetPiece(int id)
 		if (white.id == id)
 		{
 			retorno = white;
+
+			if (setTranslate)
+			{
+				white.translate = true;
+			}
+
 			break;
 		}
 	}
@@ -905,6 +913,12 @@ GameObject GetPiece(int id)
 			if (black.id == id)
 			{
 				retorno = black;
+
+				if (setTranslate)
+				{
+					black.translate = true;
+				}
+
 				break;
 			}
 		}
@@ -1290,7 +1304,9 @@ void MouseMap(double xPos, double yPos) {
 
 	if (TestPointCollision(tile.Ax, tile.Ay, tile.Bx, tile.By, tile.Cx, tile.Cy, xPos, yPos))
 	{
-		GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece);
+		goDown += 1.0f;
+
+		GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece, true);
 
 		// Verifica se for desmarcado, para poder desmarcar as possíveis jogadas
 		if (matrixColors[rowClick][columnClick].canPlay)
@@ -1538,7 +1554,7 @@ int main() {
 
 		for each (GameObject ws in whiteSprites)
 		{
-			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, ws.vao, ws.tid, matrix, ws);
+			DefineOffsetAndRender(textureShader_programme, goDown, 0.0f, 0.51f, ws.vao, ws.tid, matrix, ws);
 		}
 
 		glBindVertexArray(1);
