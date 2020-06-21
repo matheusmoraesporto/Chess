@@ -182,7 +182,7 @@ void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint
 	float x, y;
 	DiamondDrawCalculation(x, y, 0, 0);
 
-	Transform(mt, tl, sp, x, y - 50, 0.0f);
+	Transform(mt, tl, sp, x + 25 , y - 30, 0.0f);
 
 	glUniform1f(glGetUniformLocation(sp, "offsetx"), offsetx);
 	glUniform1f(glGetUniformLocation(sp, "offsety"), offsety);
@@ -1460,10 +1460,10 @@ int main() {
 		//	DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix, bs, transformloc);
 		//}
 
-		/*or each (GameObject ws in whiteSprites)
-		{*/
+		for each (GameObject ws in whiteSprites)
+		{
 		DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, whiteSprites[0].vao, whiteSprites[0].tid, matrix, whiteSprites[0], transformloc);
-		//}
+		}
 
 		// Desenha o diamond
 		glUseProgram(mapShader_programme);
