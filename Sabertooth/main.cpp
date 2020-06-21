@@ -45,13 +45,15 @@ const int sumTilesHeigth = NUM_ROWS * TILE_HEIGHT;
 // Exemplo: se o jogador selecionar a peça bispo, todos os prováveis tiles para onde o bispode pode se mover estarão aqui.
 vector<pair<int, int>> selectedPositions;
 
-glm::mat4 matrix_translaction = glm::mat4(1.0f);
+
 glm::mat4 matrix = glm::mat4(1);
-unsigned int transformloc;
 
 int textureShader_programme;
 
-int goDown = 1.0f;
+int x = 0;
+
+int lastSelectedColumn = -1;
+int lastSelectedRow = -1;
 
 #pragma endregion
 
@@ -151,6 +153,12 @@ void LoadImage(int id, bool isBlack, int row, int col, Piece piece)
 	}
 }
 
+void DiamondDrawCalculation(float& x, float& y, int row, int col)
+{
+	x = row * (TILE_WIDTH / 2.0f) + col * (TILE_WIDTH / 2.0f);
+	y = row * (TILE_HEIGHT / 2.0f) - col * (TILE_HEIGHT / 2.0f) + sumTilesHeigth / 2.0f - (TILE_HEIGHT / 2.0f);
+}
+
 // faz o bind das textura e desenha a geometria
 void Render(GLuint vao, GLuint texture, int sp)
 {
@@ -160,47 +168,25 @@ void Render(GLuint vao, GLuint texture, int sp)
 	glUniform1i(glGetUniformLocation(sp, "sprite"), 0);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindVertexArray(vao);
 }
 
 void Transform(glm::mat4& mt, unsigned int& tl, int sp, float x, float y, float z)
 {
-	mt = glm::mat4(1.0f);
 	mt = glm::translate(mt, glm::vec3(x, y, z));
-	tl = glGetUniformLocation(sp, "matrix");
 	glUniformMatrix4fv(tl, 1, GL_FALSE, glm::value_ptr(mt));
 }
 
 // Atribuis o offsetx e o offsetY por layer e gameobject
-void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint vao, GLuint tid, glm::mat4 mt, GameObject& go)
+void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint vao, GLuint tid, glm::mat4 mt, GameObject& go, unsigned int& tl)
 {
-	if (go.translate)
-	{
-		for each (GameObject ws in whiteSprites)
-		{
-			if (go.id == ws.id)
-			{
-				ws.translate = false;
-				break;
-			}
-		}
+	float x, y;
+	DiamondDrawCalculation(x, y, 0, 0);
 
-		for each (GameObject bs in blackSprites)
-		{
-			if (go.id == bs.id)
-			{
-				bs.translate = false;
-				break;
-			}
-		}
-
-		Transform(matrix_translaction, transformloc, sp, goDown, 1.0f, 0.51f);
-	}
+	Transform(mt, tl, sp, x, y - 50, 0.0f);
 
 	glUniform1f(glGetUniformLocation(sp, "offsetx"), offsetx);
-	glUniform1f(glGetUniformLocation(sp, "offsety"), goDown * 0.3f);
+	glUniform1f(glGetUniformLocation(sp, "offsety"), offsety);
 	glUniform1f(glGetUniformLocation(sp, "layer_z"), z);
-	glUniformMatrix4fv(glGetUniformLocation(sp, "matrix"), 1, GL_FALSE, glm::value_ptr(mt));
 
 	Render(vao, tid, sp);
 }
@@ -223,193 +209,193 @@ void DefineGeometry(int id, GameObject& go)
 	// White rook
 	GLfloat vertices1[] = {
 		// positions			  // texture coords
-		310.0f, 305.0f, +0.0f,	  1.0, 1.0f,
-		310.0f, 275.0f, +0.0f,	  1.0f, 0.0f,
-		330.0f, 305.0f, +0.0f,	  0.0f, 1.0f,
+		0.0f, 60.0f, 	  1.0, 1.0f,
+		0.0f, 0.0f, 	  1.0f, 0.0f,
+		30.0f, 60.0f, 	  0.0f, 1.0f,
 
-		330.0f, 305.0f, +0.0f,	  0.0, 1.0f,
-		310.0f, 275.0f, +0.0f,	  1.0f, 0.0f,
-		330.0f, 275.0f, +0.0f,	  0.0f, 0.0f,
+		30.0f, 60.0f, 	  0.0, 1.0f,
+		0.0f, 0.0f, 	  1.0f, 0.0f,
+		30.0f, 0.0f, 	  0.0f, 0.0f,
 	};
 
 	// White knight
 	GLfloat vertices2[] = {
 		// positions			  // texture coords
-		350.0f, 285.0f, +0.0f,	  1.0, 1.0f,
-		350.0f, 255.0f, +0.0f,	  1.0f, 0.0f,
-		370.0f, 285.0f, +0.0f,	  0.0f, 1.0f,
+		350.0f, 285.0f, 	  1.0, 1.0f,
+		350.0f, 255.0f, 	  1.0f, 0.0f,
+		370.0f, 285.0f, 	  0.0f, 1.0f,
 
-		370.0f, 285.0f, +0.0f,	  0.0, 1.0f,
-		350.0f, 255.0f, +0.0f,	  1.0f, 0.0f,
-		370.0f, 255.0f, +0.0f,	  0.0f, 0.0f,
+		370.0f, 285.0f, 	  0.0, 1.0f,
+		350.0f, 255.0f, 	  1.0f, 0.0f,
+		370.0f, 255.0f, 	  0.0f, 0.0f,
 	};
 
 	// White bishop
 	GLfloat vertices3[] = {
 		// positions			  // texture coords
-		390.0f, 265.0f, +0.0f,	  1.0, 1.0f,
-		390.0f, 235.0f, +0.0f,	  1.0f, 0.0f,
-		410.0f, 265.0f, +0.0f,	  0.0f, 1.0f,
+		390.0f, 265.0f, 	  1.0, 1.0f,
+		390.0f, 235.0f, 	  1.0f, 0.0f,
+		410.0f, 265.0f, 	  0.0f, 1.0f,
 
-		410.0f, 265.0f, +0.0f,	  0.0, 1.0f,
-		390.0f, 235.0f, +0.0f,	  1.0f, 0.0f,
-		410.0f, 235.0f, +0.0f,	  0.0f, 0.0f,
+		410.0f, 265.0f, 	  0.0, 1.0f,
+		390.0f, 235.0f, 	  1.0f, 0.0f,
+		410.0f, 235.0f, 	  0.0f, 0.0f,
 	};
 
 	// White king
 	GLfloat vertices4[] = {
 		// positions			  // texture coords
-		430.0f, 245.0f, +0.0f,	  1.0, 1.0f,
-		430.0f, 215.0f, +0.0f,	  1.0f, 0.0f,
-		450.0f, 245.0f, +0.0f,	  0.0f, 1.0f,
+		430.0f, 245.0f, 	  1.0, 1.0f,
+		430.0f, 215.0f, 	  1.0f, 0.0f,
+		450.0f, 245.0f, 	  0.0f, 1.0f,
 
-		450.0f, 245.0f, +0.0f,	  0.0, 1.0f,
-		430.0f, 215.0f, +0.0f,	  1.0f, 0.0f,
-		450.0f, 215.0f, +0.0f,	  0.0f, 0.0f,
+		450.0f, 245.0f, 	  0.0, 1.0f,
+		430.0f, 215.0f, 	  1.0f, 0.0f,
+		450.0f, 215.0f, 	  0.0f, 0.0f,
 	};
 
 	// White queen
 	GLfloat vertices5[] = {
 		// positions			  // texture coords
-		470.0f, 225.0f, +0.0f,	  1.0, 1.0f,
-		470.0f, 195.0f, +0.0f,	  1.0f, 0.0f,
-		490.0f, 225.0f, +0.0f,	  0.0f, 1.0f,
+		470.0f, 225.0f, 	  1.0, 1.0f,
+		470.0f, 195.0f, 	  1.0f, 0.0f,
+		490.0f, 225.0f, 	  0.0f, 1.0f,
 
-		490.0f, 225.0f, +0.0f,	  0.0, 1.0f,
-		470.0f, 195.0f, +0.0f,	  1.0f, 0.0f,
-		490.0f, 195.0f, +0.0f,	  0.0f, 0.0f,
+		490.0f, 225.0f, 	  0.0, 1.0f,
+		470.0f, 195.0f, 	  1.0f, 0.0f,
+		490.0f, 195.0f, 	  0.0f, 0.0f,
 	};
 
 	// White bishop
 	GLfloat vertices6[] = {
 		// positions			  // texture coords
-		510.0f, 205.0f, +0.0f,	  1.0, 1.0f,
-		510.0f, 175.0f, +0.0f,	  1.0f, 0.0f,
-		530.0f, 205.0f, +0.0f,	  0.0f, 1.0f,
+		510.0f, 205.0f, 	  1.0, 1.0f,
+		510.0f, 175.0f, 	  1.0f, 0.0f,
+		530.0f, 205.0f, 	  0.0f, 1.0f,
 
-		530.0f, 205.0f, +0.0f,	  0.0, 1.0f,
-		510.0f, 175.0f, +0.0f,	  1.0f, 0.0f,
-		530.0f, 175.0f, +0.0f,	  0.0f, 0.0f,
+		530.0f, 205.0f, 	  0.0, 1.0f,
+		510.0f, 175.0f, 	  1.0f, 0.0f,
+		530.0f, 175.0f, 	  0.0f, 0.0f,
 	};
 
 	// White knight
 	GLfloat vertices7[] = {
 		// positions			  // texture coords
-		550.0f, 185.0f, +0.0f,	  1.0, 1.0f,
-		550.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
-		570.0f, 185.0f, +0.0f,	  0.0f, 1.0f,
+		550.0f, 185.0f, 	  1.0, 1.0f,
+		550.0f, 155.0f, 	  1.0f, 0.0f,
+		570.0f, 185.0f, 	  0.0f, 1.0f,
 
-		570.0f, 185.0f, +0.0f,	  0.0, 1.0f,
-		550.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
-		570.0f, 155.0f, +0.0f,	  0.0f, 0.0f,
+		570.0f, 185.0f, 	  0.0, 1.0f,
+		550.0f, 155.0f, 	  1.0f, 0.0f,
+		570.0f, 155.0f, 	  0.0f, 0.0f,
 	};
 
 	// White rook
 	GLfloat vertices8[] = {
 		// positions			  // texture coords
-		590.0f, 165.0f, +0.0f,	  1.0, 1.0f,
-		590.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		610.0f, 165.0f, +0.0f,	  0.0f, 1.0f,
+		590.0f, 165.0f, 	  1.0, 1.0f,
+		590.0f, 135.0f, 	  1.0f, 0.0f,
+		610.0f, 165.0f, 	  0.0f, 1.0f,
 
-		610.0f, 165.0f, +0.0f,	  0.0, 1.0f,
-		590.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		610.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		610.0f, 165.0f, 	  0.0, 1.0f,
+		590.0f, 135.0f, 	  1.0f, 0.0f,
+		610.0f, 135.0f, 	  0.0f, 0.0f,
 	};
 
 	// White pawn
 	GLfloat vertices9[] = {
 		// positions			  // texture coords
-		270.0f, 285.0f, +0.0f,	  1.0, 1.0f,
-		270.0f, 255.0f, +0.0f,	  1.0f, 0.0f,
-		290.0f, 285.0f, +0.0f,	  0.0f, 1.0f,
+		270.0f, 285.0f, 	  1.0, 1.0f,
+		270.0f, 255.0f, 	  1.0f, 0.0f,
+		290.0f, 285.0f, 	  0.0f, 1.0f,
 
-		290.0f, 285.0f, +0.0f,	  0.0, 1.0f,
-		270.0f, 255.0f, +0.0f,	  1.0f, 0.0f,
-		290.0f, 255.0f, +0.0f,	  0.0f, 0.0f,
+		290.0f, 285.0f, 	  0.0, 1.0f,
+		270.0f, 255.0f, 	  1.0f, 0.0f,
+		290.0f, 255.0f, 	  0.0f, 0.0f,
 	};
 
 	// White pawn
 	GLfloat vertices10[] = {
 		// positions			  // texture coords
-		310.0f, 265.0f, +0.0f,	  1.0, 1.0f,
-		310.0f, 235.0f, +0.0f,	  1.0f, 0.0f,
-		330.0f, 265.0f, +0.0f,	  0.0f, 1.0f,
+		310.0f, 265.0f, 	  1.0, 1.0f,
+		310.0f, 235.0f, 	  1.0f, 0.0f,
+		330.0f, 265.0f, 	  0.0f, 1.0f,
 
-		330.0f, 265.0f, +0.0f,	  0.0, 1.0f,
-		310.0f, 235.0f, +0.0f,	  1.0f, 0.0f,
-		330.0f, 235.0f, +0.0f,	  0.0f, 0.0f,
+		330.0f, 265.0f, 	  0.0, 1.0f,
+		310.0f, 235.0f, 	  1.0f, 0.0f,
+		330.0f, 235.0f, 	  0.0f, 0.0f,
 	};
 
 	// White pawn
 	GLfloat vertices11[] = {
 		// positions			  // texture coords
-		350.0f, 245.0f, +0.0f,	  1.0, 1.0f,
-		350.0f, 215.0f, +0.0f,	  1.0f, 0.0f,
-		370.0f, 245.0f, +0.0f,	  0.0f, 1.0f,
+		350.0f, 245.0f, 	  1.0, 1.0f,
+		350.0f, 215.0f, 	  1.0f, 0.0f,
+		370.0f, 245.0f, 	  0.0f, 1.0f,
 
-		370.0f, 245.0f, +0.0f,	  0.0, 1.0f,
-		350.0f, 215.0f, +0.0f,	  1.0f, 0.0f,
-		370.0f, 215.0f, +0.0f,	  0.0f, 0.0f,
+		370.0f, 245.0f, 	  0.0, 1.0f,
+		350.0f, 215.0f, 	  1.0f, 0.0f,
+		370.0f, 215.0f, 	  0.0f, 0.0f,
 	};
 
 	// White pawn
 	GLfloat vertices12[] = {
 		// positions			  // texture coords
-		390.0f, 225.0f, +0.0f,	  1.0, 1.0f,
-		390.0f, 195.0f, +0.0f,	  1.0f, 0.0f,
-		410.0f, 225.0f, +0.0f,	  0.0f, 1.0f,
+		390.0f, 225.0f, 	  1.0, 1.0f,
+		390.0f, 195.0f, 	  1.0f, 0.0f,
+		410.0f, 225.0f, 	  0.0f, 1.0f,
 
-		410.0f, 225.0f, +0.0f,	  0.0, 1.0f,
-		390.0f, 195.0f, +0.0f,	  1.0f, 0.0f,
-		410.0f, 195.0f, +0.0f,	  0.0f, 0.0f,
+		410.0f, 225.0f, 	  0.0, 1.0f,
+		390.0f, 195.0f, 	  1.0f, 0.0f,
+		410.0f, 195.0f, 	  0.0f, 0.0f,
 	};
 
 	// White pawn
 	GLfloat vertices13[] = {
 		// positions			  // texture coords
-		430.0f, 205.0f, +0.0f,	  1.0, 1.0f,
-		430.0f, 175.0f, +0.0f,	  1.0f, 0.0f,
-		450.0f, 205.0f, +0.0f,	  0.0f, 1.0f,
+		430.0f, 205.0f,	  1.0, 1.0f,
+		430.0f, 175.0f,	  1.0f, 0.0f,
+		450.0f, 205.0f,	  0.0f, 1.0f,
 
-		450.0f, 205.0f, +0.0f,	  0.0, 1.0f,
-		430.0f, 175.0f, +0.0f,	  1.0f, 0.0f,
-		450.0f, 175.0f, +0.0f,	  0.0f, 0.0f,
+		450.0f, 205.0f,	  0.0, 1.0f,
+		430.0f, 175.0f,	  1.0f, 0.0f,
+		450.0f, 175.0f,	  0.0f, 0.0f,
 	};
 
 	// White pawn
 	GLfloat vertices14[] = {
 		// positions			  // texture coords
-		470.0f, 185.0f, +0.0f,	  1.0, 1.0f,
-		470.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
-		490.0f, 185.0f, +0.0f,	  0.0f, 1.0f,
+		470.0f, 185.0f,	  1.0, 1.0f,
+		470.0f, 155.0f,	  1.0f, 0.0f,
+		490.0f, 185.0f,	  0.0f, 1.0f,
 
-		490.0f, 185.0f, +0.0f,	  0.0, 1.0f,
-		470.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
-		490.0f, 155.0f, +0.0f,	  0.0f, 0.0f,
+		490.0f, 185.0f,	  0.0, 1.0f,
+		470.0f, 155.0f,	  1.0f, 0.0f,
+		490.0f, 155.0f,	  0.0f, 0.0f,
 	};
 
 	// White pawn
 	GLfloat vertices15[] = {
 		// positions			  // texture coords
-		510.0f, 165.0f, +0.0f,	  1.0, 1.0f,
-		510.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		530.0f, 165.0f, +0.0f,	  0.0f, 1.0f,
+		510.0f, 165.0f, 	  1.0, 1.0f,
+		510.0f, 135.0f, 	  1.0f, 0.0f,
+		530.0f, 165.0f, 	  0.0f, 1.0f,
 
-		530.0f, 165.0f, +0.0f,	  0.0, 1.0f,
-		510.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		530.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
+		530.0f, 165.0f, 	  0.0, 1.0f,
+		510.0f, 135.0f, 	  1.0f, 0.0f,
+		530.0f, 135.0f, 	  0.0f, 0.0f,
 	};
 
 	// White pawn
 	GLfloat vertices16[] = {
 		// positions			  // texture coords
-		550.0f, 145.0f, +0.0f,	  1.0, 1.0f,
-		550.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
-		570.0f, 145.0f, +0.0f,	  0.0f, 1.0f,
+		550.0f, 145.0f,	  1.0, 1.0f,
+		550.0f, 115.0f,	  1.0f, 0.0f,
+		570.0f, 145.0f,	  0.0f, 1.0f,
 
-		570.0f, 145.0f, +0.0f,	  0.0, 1.0f,
-		550.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
-		570.0f, 115.0f, +0.0f,	  0.0f, 0.0f,
+		570.0f, 145.0f,	  0.0, 1.0f,
+		550.0f, 115.0f,	  1.0f, 0.0f,
+		570.0f, 115.0f,	  0.0f, 0.0f,
 	};
 #pragma endregion
 #pragma region Black pieces
@@ -607,110 +593,10 @@ void DefineGeometry(int id, GameObject& go)
 #pragma endregion
 #pragma endregion
 
-#pragma region "glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)"
-	switch (id)
-	{
-	case 1:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
-		break;
-	case 2:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
-		break;
-	case 3:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices3), vertices3, GL_STATIC_DRAW);
-		break;
-	case 4:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices4), vertices4, GL_STATIC_DRAW);
-		break;
-	case 5:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices5), vertices5, GL_STATIC_DRAW);
-		break;
-	case 6:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices6), vertices6, GL_STATIC_DRAW);
-		break;
-	case 7:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices7), vertices7, GL_STATIC_DRAW);
-		break;
-	case 8:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices8), vertices8, GL_STATIC_DRAW);
-		break;
-	case 9:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices9), vertices9, GL_STATIC_DRAW);
-		break;
-	case 10:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices10), vertices10, GL_STATIC_DRAW);
-		break;
-	case 11:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices11), vertices11, GL_STATIC_DRAW);
-		break;
-	case 12:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices12), vertices12, GL_STATIC_DRAW);
-		break;
-	case 13:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices13), vertices13, GL_STATIC_DRAW);
-		break;
-	case 14:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices14), vertices14, GL_STATIC_DRAW);
-		break;
-	case 15:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices15), vertices15, GL_STATIC_DRAW);
-		break;
-	case 16:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices16), vertices16, GL_STATIC_DRAW);
-		break;
-	case 17:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices17), vertices17, GL_STATIC_DRAW);
-		break;
-	case 18:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices18), vertices18, GL_STATIC_DRAW);
-		break;
-	case 19:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices19), vertices19, GL_STATIC_DRAW);
-		break;
-	case 20:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices20), vertices20, GL_STATIC_DRAW);
-		break;
-	case 21:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices21), vertices21, GL_STATIC_DRAW);
-		break;
-	case 22:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices22), vertices22, GL_STATIC_DRAW);
-		break;
-	case 23:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices23), vertices23, GL_STATIC_DRAW);
-		break;
-	case 24:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices24), vertices24, GL_STATIC_DRAW);
-		break;
-	case 25:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices25), vertices25, GL_STATIC_DRAW);
-		break;
-	case 26:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices26), vertices26, GL_STATIC_DRAW);
-		break;
-	case 27:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices27), vertices27, GL_STATIC_DRAW);
-		break;
-	case 28:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices28), vertices28, GL_STATIC_DRAW);
-		break;
-	case 29:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices29), vertices29, GL_STATIC_DRAW);
-		break;
-	case 30:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices30), vertices30, GL_STATIC_DRAW);
-		break;
-	case 31:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices31), vertices31, GL_STATIC_DRAW);
-		break;
-	case 32:
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices32), vertices32, GL_STATIC_DRAW);
-		break;
-	}
-#pragma endregion
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(float)));
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
@@ -791,11 +677,7 @@ void ConfigSprites()
 
 #pragma region DiamondMap
 
-void DiamondDrawCalculation(float& x, float& y, int row, int col)
-{
-	x = row * (TILE_WIDTH / 2.0f) + col * (TILE_WIDTH / 2.0f);
-	y = row * (TILE_HEIGHT / 2.0f) - col * (TILE_HEIGHT / 2.0f) + sumTilesHeigth / 2.0f - (TILE_HEIGHT / 2.0f);
-}
+
 
 void CreateMatrixColors()
 {
@@ -1290,6 +1172,19 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 	}
 }
 
+void SetFirst(int id)
+{
+	for each (GameObject ws in whiteSprites)
+	{
+
+	}
+
+	for each (GameObject bs in whiteSprites)
+	{
+
+	}
+}
+
 void MouseMap(double xPos, double yPos) {
 
 	int rowClick, columnClick;
@@ -1304,13 +1199,11 @@ void MouseMap(double xPos, double yPos) {
 
 	if (TestPointCollision(tile.Ax, tile.Ay, tile.Bx, tile.By, tile.Cx, tile.Cy, xPos, yPos))
 	{
-		goDown += 1.0f;
-
-		GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece, true);
-
 		// Verifica se for desmarcado, para poder desmarcar as possíveis jogadas
 		if (matrixColors[rowClick][columnClick].canPlay)
 		{
+			GameObject& piece = GetPiece(matrixColors[lastSelectedRow][lastSelectedColumn].idPiece, true);
+
 			if (!tile.isSelected)
 			{
 				canPlayBlack = canPlayWhite;
@@ -1327,14 +1220,29 @@ void MouseMap(double xPos, double yPos) {
 			}
 
 			selectedPositions.clear();
+
+			if (matrixColors[rowClick][columnClick].idPiece != matrixColors[lastSelectedRow][lastSelectedColumn].idPiece)
+			{
+				SetFirst(piece.id);
+
+				//piece.setIsFirstMove(false);
+				matrixColors[rowClick][columnClick].idPiece = matrixColors[lastSelectedRow][lastSelectedColumn].idPiece;
+				matrixColors[lastSelectedRow][lastSelectedColumn].idPiece = 0;
+			}
+
 		}
 		else if (selectedPositions.empty() && tile.idPiece > 0) // Já terá adicionado o tile selecionado, então não estará vazio mais, apenas terá o tile selecionado
 		{
+			GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece, true);
+
 			bool playBlack = piece.color == Color::Black && canPlayBlack;
 			bool playWhite = piece.color == Color::White && canPlayWhite;
 
 			if (playBlack || playWhite)
 			{
+				lastSelectedColumn = columnClick;
+				lastSelectedRow = rowClick;
+
 				matrixColors[rowClick][columnClick].isSelected = !matrixColors[rowClick][columnClick].isSelected;
 
 				markTile(rowClick, columnClick, true, true);
@@ -1511,9 +1419,7 @@ int main() {
 	float col = 0.0f;
 	float row = 0.0f;
 
-	// Matrix de movimento para sprits inimigas
-	transformloc = glGetUniformLocation(textureShader_programme, "matrix");
-	glUniformMatrix4fv(transformloc, 1, GL_FALSE, glm::value_ptr(matrix));
+
 
 	// esta para quando clicar com o mouse
 	glfwSetMouseButtonCallback(window, SelectPosition);
@@ -1533,7 +1439,7 @@ int main() {
 
 		// glm projecao
 		glm::mat4 projection = glm::ortho(0.0f, (float)WIDTH, (float)HEIGHT, 0.0f, -1.0f, 1.0f);
-		glUniformMatrix4fv(glGetUniformLocation(mapShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(projection));
+
 
 		int screenWidth, screenHeight;
 		glfwGetWindowSize(window, &screenWidth, &screenHeight);
@@ -1544,31 +1450,30 @@ int main() {
 
 		glUniformMatrix4fv(glGetUniformLocation(textureShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
-		//Define VAO atual
-		glBindVertexArray(VAO);
+		// Matrix de movimento para sprits inimigas
+		glm::mat4 matrix_translaction = glm::mat4(1.0f);
+		unsigned int transformloc = glGetUniformLocation(textureShader_programme, "matrix");
+		glUniformMatrix4fv(transformloc, 1, GL_FALSE, glm::value_ptr(matrix));
 
-		for each (GameObject bs in blackSprites)
-		{
-			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix, bs);
-		}
+		//for each (GameObject bs in blackSprites)
+		//{
+		//	DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix, bs, transformloc);
+		//}
 
-		for each (GameObject ws in whiteSprites)
-		{
-			DefineOffsetAndRender(textureShader_programme, goDown, 0.0f, 0.51f, ws.vao, ws.tid, matrix, ws);
-		}
-
-		glBindVertexArray(1);
+		/*or each (GameObject ws in whiteSprites)
+		{*/
+		DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, whiteSprites[0].vao, whiteSprites[0].tid, matrix, whiteSprites[0], transformloc);
+		//}
 
 		// Desenha o diamond
-
 		glUseProgram(mapShader_programme);
+		glUniformMatrix4fv(glGetUniformLocation(mapShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(projection));
+
 
 		//Define VAO atual
 		glBindVertexArray(mapVAO);
 
 		RenderDiamondMap(matrix, mapShader_programme);
-
-		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
 	}
