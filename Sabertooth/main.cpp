@@ -25,10 +25,6 @@ constexpr auto NUM_ROWS = 8;
 const int WIDTH = NUM_ROWS * TILE_WIDTH;
 const int HEIGHT = NUM_COLS * TILE_HEIGHT;
 
-// Guada o VAO das rainhas para ser usado quando um peão chegar ao outro lado do tabuleiro
-int BlackQueenVAO;
-int WhiteQueenVAO;
-
 bool canPlayWhite = true;
 bool canPlayBlack = false;
 
@@ -45,16 +41,12 @@ const int sumTilesHeigth = NUM_ROWS * TILE_HEIGHT;
 // Exemplo: se o jogador selecionar a peça bispo, todos os prováveis tiles para onde o bispode pode se mover estarão aqui.
 vector<pair<int, int>> selectedPositions;
 
-
 glm::mat4 matrix = glm::mat4(1);
-
-int textureShader_programme;
-
-int x = 0;
 
 int lastSelectedColumn = -1;
 int lastSelectedRow = -1;
 
+bool someoneWin;
 #pragma endregion
 
 int ConnectVertex(const char* v_shader, const char* f_shader)
@@ -491,7 +483,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 				{
 					GameObject nextTile = GetPiece(matrixColors[rowClick + i][columnClick].idPiece);
 
-					if (nextTile.color == piece.color)
+					if (nextTile.color == piece.color || (piece.piece == Piece::Pawn && nextTile.color != piece.color && nextTile.color != NULL))
 					{
 						break;
 					}
@@ -691,7 +683,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 				{
 					GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick].idPiece);
 
-					if (nextTile.color == piece.color)
+					if (nextTile.color == piece.color || (piece.piece == Piece::Pawn && nextTile.color != piece.color && nextTile.color != NULL))
 					{
 						break;
 					}
@@ -714,7 +706,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 				moveSoutheast = 2;
 			}
 
-			for (size_t i = 1; i < moveSoutheast; i++)
+			for (size_t i = 1; i <= moveSoutheast; i++)
 			{
 				GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick - i].idPiece);
 
@@ -743,7 +735,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 				moveSouthwest = 2;
 			}
 
-			for (size_t i = 1; i < moveSouthwest; i++)
+			for (size_t i = 1; i <= moveSouthwest; i++)
 			{
 				GameObject nextTile = GetPiece(matrixColors[rowClick - i][columnClick + i].idPiece);
 
@@ -795,27 +787,6 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 	}
 }
 
-void SetValues(int id, int r, int c)
-{
-	for each (GameObject ws in whiteSprites)
-	{
-		if (ws.id == id)
-		{
-			ws.setCurrentCol(c);
-			ws.setCurrentRow(r);
-		}
-	}
-
-	for each (GameObject bs in whiteSprites)
-	{
-		if (bs.id == id)
-		{
-			bs.setCurrentCol(c);
-			bs.setCurrentRow(r);
-		}
-	}
-}
-
 void MouseMap(double xPos, double yPos) {
 
 	int rowClick, columnClick;
@@ -841,9 +812,7 @@ void MouseMap(double xPos, double yPos) {
 				canPlayWhite = !canPlayBlack;
 			}
 
-			piece.translate = true;
-
-			matrixColors[rowClick][columnClick].isSelected = false;
+			matrixColors[lastSelectedRow][lastSelectedColumn].isSelected = false;
 
 			for each (pair<int, int> pos in selectedPositions)
 			{
@@ -852,24 +821,26 @@ void MouseMap(double xPos, double yPos) {
 
 			selectedPositions.clear();
 
-			if (piece.color == Color::White)
-			{
-				whiteSprites[piece.id - 1].currentCol = columnClick;
-				whiteSprites[piece.id - 1].currentRow = rowClick;
-			}
-			else
-			{
-				blackSprites[piece.id - 17].currentCol = columnClick;
-				blackSprites[piece.id - 17] .currentRow = rowClick;
-			}
-
 			if (matrixColors[rowClick][columnClick].idPiece != matrixColors[lastSelectedRow][lastSelectedColumn].idPiece)
 			{
-				SetValues(piece.id, rowClick, columnClick);
+				someoneWin = GetPiece(matrixColors[rowClick][columnClick].idPiece).piece == Piece::King;
 
-				//piece.setIsFirstMove(false);
 				matrixColors[rowClick][columnClick].idPiece = matrixColors[lastSelectedRow][lastSelectedColumn].idPiece;
 				matrixColors[lastSelectedRow][lastSelectedColumn].idPiece = 0;
+
+
+				if (piece.color == Color::White)
+				{
+					whiteSprites[piece.id - 1].currentCol = columnClick;
+					whiteSprites[piece.id - 1].currentRow = rowClick;
+					whiteSprites[piece.id - 1].isFirstMove = false;
+				}
+				else
+				{
+					blackSprites[piece.id - 17].currentCol = columnClick;
+					blackSprites[piece.id - 17].currentRow = rowClick;
+					blackSprites[piece.id - 17].isFirstMove = false;
+				}
 			}
 
 		}
@@ -885,7 +856,7 @@ void MouseMap(double xPos, double yPos) {
 				lastSelectedColumn = columnClick;
 				lastSelectedRow = rowClick;
 
-				matrixColors[rowClick][columnClick].isSelected = !matrixColors[rowClick][columnClick].isSelected;
+				matrixColors[rowClick][columnClick].isSelected = true;
 
 				markTile(rowClick, columnClick, true, true);
 
@@ -981,9 +952,8 @@ int main() {
 
 	glm::mat4 proj = glm::ortho(0.0f, (float)WIDTH, (float)HEIGHT, 0.0f, -1.0f, 1.0f);
 
-
 	int mapShader_programme = ConnectVertex(map_vertex_shader, map_fragment_shader);
-	textureShader_programme = ConnectVertex(textureVertex_shader, textureFragment_shader);
+	int textureShader_programme = ConnectVertex(textureVertex_shader, textureFragment_shader);
 
 	// Vértice do diamondMap
 	GLfloat mapVertices[] =
@@ -1053,20 +1023,10 @@ int main() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
-	//Variaveis
-	float coluna = 0.0f;
-	float linha = 0.0f;
-
-	int IDImagem = 0;	//1º numero = linha, 2º numero = coluna, começando do canto superior esquerdo do tileset
-	float col = 0.0f;
-	float row = 0.0f;
-
-
-
 	// esta para quando clicar com o mouse
 	glfwSetMouseButtonCallback(window, SelectPosition);
 
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window) && !someoneWin)
 	{
 		glfwPollEvents();
 
