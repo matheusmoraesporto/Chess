@@ -407,7 +407,7 @@ GameObject GetPiece(int id, bool setTranslate = false)
 				white.translate = true;
 			}
 
-			break;
+			return white;
 		}
 	}
 
@@ -424,7 +424,7 @@ GameObject GetPiece(int id, bool setTranslate = false)
 					black.translate = true;
 				}
 
-				break;
+				return black;
 			}
 		}
 	}
@@ -851,6 +851,17 @@ void MouseMap(double xPos, double yPos) {
 			}
 
 			selectedPositions.clear();
+
+			if (piece.color == Color::White)
+			{
+				whiteSprites[piece.id - 1].currentCol = columnClick;
+				whiteSprites[piece.id - 1].currentRow = rowClick;
+			}
+			else
+			{
+				blackSprites[piece.id - 17].currentCol = columnClick;
+				blackSprites[piece.id - 17] .currentRow = rowClick;
+			}
 
 			if (matrixColors[rowClick][columnClick].idPiece != matrixColors[lastSelectedRow][lastSelectedColumn].idPiece)
 			{
