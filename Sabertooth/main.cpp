@@ -143,7 +143,7 @@ void LoadImage(int id, bool isBlack, int row, int col, Piece piece)
 		glGenerateMipmap(GL_TEXTURE_2D);
 		stbi_image_free(data);
 
-		GameObject gameObj = GameObject::GameObject(id, isBlack, texture, piece, pieceMovement);
+		GameObject gameObj = GameObject::GameObject(id, isBlack, texture, piece, pieceMovement, isBlack ? row : 7 - row, col);
 
 		isBlack ? blackSprites.push_back(gameObj) : whiteSprites.push_back(gameObj);
 	}
@@ -177,18 +177,18 @@ void Transform(glm::mat4& mt, unsigned int& tl, int sp, float x, float y, float 
 }
 
 // Atribuis o offsetx e o offsetY por layer e gameobject
-void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, GLuint vao, GLuint tid, glm::mat4 mt, GameObject& go, unsigned int& tl)
+void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, glm::mat4 mt, GameObject& go, unsigned int& tl)
 {
 	float x, y;
-	DiamondDrawCalculation(x, y, 0, 0);
+	DiamondDrawCalculation(x, y, go.currentRow, go.currentCol);
 
-	Transform(mt, tl, sp, x + 25 , y - 30, 0.0f);
+	Transform(mt, tl, sp, x + 25, y - 15, 0.0f);
 
 	glUniform1f(glGetUniformLocation(sp, "offsetx"), offsetx);
 	glUniform1f(glGetUniformLocation(sp, "offsety"), offsety);
 	glUniform1f(glGetUniformLocation(sp, "layer_z"), z);
 
-	Render(vao, tid, sp);
+	Render(go.vao, go.tid, sp);
 }
 
 // Define os vertices das sprites. E faz a associação dos VAO e os VBO
@@ -204,396 +204,19 @@ void DefineGeometry(int id, GameObject& go)
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-#pragma region vertices
-#pragma region White pieces
 	// White rook
-	GLfloat vertices1[] = {
+	GLfloat vertices[] = {
 		// positions			  // texture coords
-		0.0f, 60.0f, 	  1.0, 1.0f,
+		0.0f, 40.0f, 	  1.0, 1.0f,
 		0.0f, 0.0f, 	  1.0f, 0.0f,
-		30.0f, 60.0f, 	  0.0f, 1.0f,
+		30.0f, 40.0f, 	  0.0f, 1.0f,
 
-		30.0f, 60.0f, 	  0.0, 1.0f,
+		30.0f, 40.0f, 	  0.0, 1.0f,
 		0.0f, 0.0f, 	  1.0f, 0.0f,
 		30.0f, 0.0f, 	  0.0f, 0.0f,
 	};
 
-	// White knight
-	GLfloat vertices2[] = {
-		// positions			  // texture coords
-		350.0f, 285.0f, 	  1.0, 1.0f,
-		350.0f, 255.0f, 	  1.0f, 0.0f,
-		370.0f, 285.0f, 	  0.0f, 1.0f,
-
-		370.0f, 285.0f, 	  0.0, 1.0f,
-		350.0f, 255.0f, 	  1.0f, 0.0f,
-		370.0f, 255.0f, 	  0.0f, 0.0f,
-	};
-
-	// White bishop
-	GLfloat vertices3[] = {
-		// positions			  // texture coords
-		390.0f, 265.0f, 	  1.0, 1.0f,
-		390.0f, 235.0f, 	  1.0f, 0.0f,
-		410.0f, 265.0f, 	  0.0f, 1.0f,
-
-		410.0f, 265.0f, 	  0.0, 1.0f,
-		390.0f, 235.0f, 	  1.0f, 0.0f,
-		410.0f, 235.0f, 	  0.0f, 0.0f,
-	};
-
-	// White king
-	GLfloat vertices4[] = {
-		// positions			  // texture coords
-		430.0f, 245.0f, 	  1.0, 1.0f,
-		430.0f, 215.0f, 	  1.0f, 0.0f,
-		450.0f, 245.0f, 	  0.0f, 1.0f,
-
-		450.0f, 245.0f, 	  0.0, 1.0f,
-		430.0f, 215.0f, 	  1.0f, 0.0f,
-		450.0f, 215.0f, 	  0.0f, 0.0f,
-	};
-
-	// White queen
-	GLfloat vertices5[] = {
-		// positions			  // texture coords
-		470.0f, 225.0f, 	  1.0, 1.0f,
-		470.0f, 195.0f, 	  1.0f, 0.0f,
-		490.0f, 225.0f, 	  0.0f, 1.0f,
-
-		490.0f, 225.0f, 	  0.0, 1.0f,
-		470.0f, 195.0f, 	  1.0f, 0.0f,
-		490.0f, 195.0f, 	  0.0f, 0.0f,
-	};
-
-	// White bishop
-	GLfloat vertices6[] = {
-		// positions			  // texture coords
-		510.0f, 205.0f, 	  1.0, 1.0f,
-		510.0f, 175.0f, 	  1.0f, 0.0f,
-		530.0f, 205.0f, 	  0.0f, 1.0f,
-
-		530.0f, 205.0f, 	  0.0, 1.0f,
-		510.0f, 175.0f, 	  1.0f, 0.0f,
-		530.0f, 175.0f, 	  0.0f, 0.0f,
-	};
-
-	// White knight
-	GLfloat vertices7[] = {
-		// positions			  // texture coords
-		550.0f, 185.0f, 	  1.0, 1.0f,
-		550.0f, 155.0f, 	  1.0f, 0.0f,
-		570.0f, 185.0f, 	  0.0f, 1.0f,
-
-		570.0f, 185.0f, 	  0.0, 1.0f,
-		550.0f, 155.0f, 	  1.0f, 0.0f,
-		570.0f, 155.0f, 	  0.0f, 0.0f,
-	};
-
-	// White rook
-	GLfloat vertices8[] = {
-		// positions			  // texture coords
-		590.0f, 165.0f, 	  1.0, 1.0f,
-		590.0f, 135.0f, 	  1.0f, 0.0f,
-		610.0f, 165.0f, 	  0.0f, 1.0f,
-
-		610.0f, 165.0f, 	  0.0, 1.0f,
-		590.0f, 135.0f, 	  1.0f, 0.0f,
-		610.0f, 135.0f, 	  0.0f, 0.0f,
-	};
-
-	// White pawn
-	GLfloat vertices9[] = {
-		// positions			  // texture coords
-		270.0f, 285.0f, 	  1.0, 1.0f,
-		270.0f, 255.0f, 	  1.0f, 0.0f,
-		290.0f, 285.0f, 	  0.0f, 1.0f,
-
-		290.0f, 285.0f, 	  0.0, 1.0f,
-		270.0f, 255.0f, 	  1.0f, 0.0f,
-		290.0f, 255.0f, 	  0.0f, 0.0f,
-	};
-
-	// White pawn
-	GLfloat vertices10[] = {
-		// positions			  // texture coords
-		310.0f, 265.0f, 	  1.0, 1.0f,
-		310.0f, 235.0f, 	  1.0f, 0.0f,
-		330.0f, 265.0f, 	  0.0f, 1.0f,
-
-		330.0f, 265.0f, 	  0.0, 1.0f,
-		310.0f, 235.0f, 	  1.0f, 0.0f,
-		330.0f, 235.0f, 	  0.0f, 0.0f,
-	};
-
-	// White pawn
-	GLfloat vertices11[] = {
-		// positions			  // texture coords
-		350.0f, 245.0f, 	  1.0, 1.0f,
-		350.0f, 215.0f, 	  1.0f, 0.0f,
-		370.0f, 245.0f, 	  0.0f, 1.0f,
-
-		370.0f, 245.0f, 	  0.0, 1.0f,
-		350.0f, 215.0f, 	  1.0f, 0.0f,
-		370.0f, 215.0f, 	  0.0f, 0.0f,
-	};
-
-	// White pawn
-	GLfloat vertices12[] = {
-		// positions			  // texture coords
-		390.0f, 225.0f, 	  1.0, 1.0f,
-		390.0f, 195.0f, 	  1.0f, 0.0f,
-		410.0f, 225.0f, 	  0.0f, 1.0f,
-
-		410.0f, 225.0f, 	  0.0, 1.0f,
-		390.0f, 195.0f, 	  1.0f, 0.0f,
-		410.0f, 195.0f, 	  0.0f, 0.0f,
-	};
-
-	// White pawn
-	GLfloat vertices13[] = {
-		// positions			  // texture coords
-		430.0f, 205.0f,	  1.0, 1.0f,
-		430.0f, 175.0f,	  1.0f, 0.0f,
-		450.0f, 205.0f,	  0.0f, 1.0f,
-
-		450.0f, 205.0f,	  0.0, 1.0f,
-		430.0f, 175.0f,	  1.0f, 0.0f,
-		450.0f, 175.0f,	  0.0f, 0.0f,
-	};
-
-	// White pawn
-	GLfloat vertices14[] = {
-		// positions			  // texture coords
-		470.0f, 185.0f,	  1.0, 1.0f,
-		470.0f, 155.0f,	  1.0f, 0.0f,
-		490.0f, 185.0f,	  0.0f, 1.0f,
-
-		490.0f, 185.0f,	  0.0, 1.0f,
-		470.0f, 155.0f,	  1.0f, 0.0f,
-		490.0f, 155.0f,	  0.0f, 0.0f,
-	};
-
-	// White pawn
-	GLfloat vertices15[] = {
-		// positions			  // texture coords
-		510.0f, 165.0f, 	  1.0, 1.0f,
-		510.0f, 135.0f, 	  1.0f, 0.0f,
-		530.0f, 165.0f, 	  0.0f, 1.0f,
-
-		530.0f, 165.0f, 	  0.0, 1.0f,
-		510.0f, 135.0f, 	  1.0f, 0.0f,
-		530.0f, 135.0f, 	  0.0f, 0.0f,
-	};
-
-	// White pawn
-	GLfloat vertices16[] = {
-		// positions			  // texture coords
-		550.0f, 145.0f,	  1.0, 1.0f,
-		550.0f, 115.0f,	  1.0f, 0.0f,
-		570.0f, 145.0f,	  0.0f, 1.0f,
-
-		570.0f, 145.0f,	  0.0, 1.0f,
-		550.0f, 115.0f,	  1.0f, 0.0f,
-		570.0f, 115.0f,	  0.0f, 0.0f,
-	};
-#pragma endregion
-#pragma region Black pieces
-	// Black rook
-	GLfloat vertices17[] = {
-		// positions			  // texture coords
-		30.0f, 165.0f, +0.0f,	  1.0, 1.0f,
-		30.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		50.0f, 165.0f, +0.0f,	  0.0f, 1.0f,
-
-		50.0f, 165.0f, +0.0f,	  0.0, 1.0f,
-		30.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		50.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black knight
-	GLfloat vertices18[] = {
-		// positions			  // texture coords
-		70.0f, 145.0f, +0.0f,	  1.0, 1.0f,
-		70.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
-		90.0f, 145.0f, +0.0f,	  0.0f, 1.0f,
-
-		90.0f, 145.0f, +0.0f,	  0.0, 1.0f,
-		70.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
-		90.0f, 115.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black bishop
-	GLfloat vertices19[] = {
-		// positions			  // texture coords
-		110.0f, 125.0f, +0.0f,	  1.0, 1.0f,
-		110.0f, 95.0f, +0.0f,	  1.0f, 0.0f,
-		130.0f, 125.0f, +0.0f,	  0.0f, 1.0f,
-
-		130.0f, 125.0f, +0.0f,	  0.0, 1.0f,
-		110.0f, 95.0f, +0.0f,	  1.0f, 0.0f,
-		130.0f, 95.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black king
-	GLfloat vertices20[] = {
-		// positions			  // texture coords
-		150.0f, 105.0f, +0.0f,	  1.0, 1.0f,
-		150.0f, 75.0f, +0.0f,	  1.0f, 0.0f,
-		170.0f, 105.0f, +0.0f,	  0.0f, 1.0f,
-
-		170.0f, 105.0f, +0.0f,	  0.0, 1.0f,
-		150.0f, 75.0f, +0.0f,	  1.0f, 0.0f,
-		170.0f, 75.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black queen
-	GLfloat vertices21[] = {
-		// positions			  // texture coords
-		190.0f, 85.0f, +0.0f,	  1.0, 1.0f,
-		190.0f, 55.0f, +0.0f,	  1.0f, 0.0f,
-		210.0f, 85.0f, +0.0f,	  0.0f, 1.0f,
-
-		210.0f, 85.0f, +0.0f,	  0.0, 1.0f,
-		190.0f, 55.0f, +0.0f,	  1.0f, 0.0f,
-		210.0f, 55.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black bishop
-	GLfloat vertices22[] = {
-		// positions			  // texture coords
-		230.0f, 65.0f, +0.0f,	  1.0, 1.0f,
-		230.0f, 35.0f, +0.0f,	  1.0f, 0.0f,
-		250.0f, 65.0f, +0.0f,	  0.0f, 1.0f,
-
-		250.0f, 65.0f, +0.0f,	  0.0, 1.0f,
-		230.0f, 35.0f, +0.0f,	  1.0f, 0.0f,
-		250.0f, 35.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black knight
-	GLfloat vertices23[] = {
-		// positions			  // texture coords
-		270.0f, 45.0f, +0.0f,	  1.0, 1.0f,
-		270.0f, 15.0f, +0.0f,	  1.0f, 0.0f,
-		290.0f, 45.0f, +0.0f,	  0.0f, 1.0f,
-
-		290.0f, 45.0f, +0.0f,	  0.0, 1.0f,
-		270.0f, 15.0f, +0.0f,	  1.0f, 0.0f,
-		290.0f, 15.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black rook
-	GLfloat vertices24[] = {
-		// positions			  // texture coords
-		310.0f, 25.0f, +0.0f,	  1.0, 1.0f,
-		310.0f, -5.0f, +0.0f,	  1.0f, 0.0f,
-		330.0f, 25.0f, +0.0f,	  0.0f, 1.0f,
-
-		330.0f, 25.0f, +0.0f,	  0.0, 1.0f,
-		310.0f, -5.0f, +0.0f,	  1.0f, 0.0f,
-		330.0f, -5.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black pawn
-	GLfloat vertices25[] = {
-		// positions			  // texture coords
-		70.0f, 185.0f, +0.0f,	  1.0, 1.0f,
-		70.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
-		90.0f, 185.0f, +0.0f,	  0.0f, 1.0f,
-
-		90.0f, 185.0f, +0.0f,	  0.0, 1.0f,
-		70.0f, 155.0f, +0.0f,	  1.0f, 0.0f,
-		90.0f, 155.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black pawn
-	GLfloat vertices26[] = {
-		// positions			  // texture coords
-		110.0f, 165.0f, +0.0f,	  1.0, 1.0f,
-		110.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		130.0f, 165.0f, +0.0f,	  0.0f, 1.0f,
-
-		130.0f, 165.0f, +0.0f,	  0.0, 1.0f,
-		110.0f, 135.0f, +0.0f,	  1.0f, 0.0f,
-		130.0f, 135.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black pawn
-	GLfloat vertices27[] = {
-		// positions			  // texture coords
-		150.0f, 145.0f, +0.0f,	  1.0, 1.0f,
-		150.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
-		170.0f, 145.0f, +0.0f,	  0.0f, 1.0f,
-
-		170.0f, 145.0f, +0.0f,	  0.0, 1.0f,
-		150.0f, 115.0f, +0.0f,	  1.0f, 0.0f,
-		170.0f, 115.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black pawn
-	GLfloat vertices28[] = {
-		// positions			  // texture coords
-		190.0f, 125.0f, +0.0f,	  1.0, 1.0f,
-		190.0f, 95.0f, +0.0f,	  1.0f, 0.0f,
-		210.0f, 125.0f, +0.0f,	  0.0f, 1.0f,
-
-		210.0f, 125.0f, +0.0f,	  0.0, 1.0f,
-		190.0f, 95.0f, +0.0f,	  1.0f, 0.0f,
-		210.0f, 95.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black pawn
-	GLfloat vertices29[] = {
-		// positions			  // texture coords
-		230.0f, 105.0f, +0.0f,	  1.0, 1.0f,
-		230.0f, 75.0f, +0.0f,	  1.0f, 0.0f,
-		250.0f, 105.0f, +0.0f,	  0.0f, 1.0f,
-
-		250.0f, 105.0f, +0.0f,	  0.0, 1.0f,
-		230.0f, 75.0f, +0.0f,	  1.0f, 0.0f,
-		250.0f, 75.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black pawn
-	GLfloat vertices30[] = {
-		// positions			  // texture coords
-		270.0f, 85.0f, +0.0f,	  1.0, 1.0f,
-		270.0f, 55.0f, +0.0f,	  1.0f, 0.0f,
-		290.0f, 85.0f, +0.0f,	  0.0f, 1.0f,
-
-		290.0f, 85.0f, +0.0f,	  0.0, 1.0f,
-		270.0f, 55.0f, +0.0f,	  1.0f, 0.0f,
-		290.0f, 55.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black pawn
-	GLfloat vertices31[] = {
-		// positions			  // texture coords
-		310.0f, 65.0f, +0.0f,	  1.0, 1.0f,
-		310.0f, 35.0f, +0.0f,	  1.0f, 0.0f,
-		330.0f, 65.0f, +0.0f,	  0.0f, 1.0f,
-
-		330.0f, 65.0f, +0.0f,	  0.0, 1.0f,
-		310.0f, 35.0f, +0.0f,	  1.0f, 0.0f,
-		330.0f, 35.0f, +0.0f,	  0.0f, 0.0f,
-	};
-
-	// Black pawn
-	GLfloat vertices32[] = {
-		// positions			  // texture coords
-		350.0f, 45.0f, +0.0f,	  1.0, 1.0f,
-		350.0f, 15.0f, +0.0f,	  1.0f, 0.0f,
-		370.0f, 45.0f, +0.0f,	  0.0f, 1.0f,
-
-		370.0f, 45.0f, +0.0f,	  0.0, 1.0f,
-		350.0f, 15.0f, +0.0f,	  1.0f, 0.0f,
-		370.0f, 15.0f, +0.0f,	  0.0f, 0.0f,
-	};
-#pragma endregion
-#pragma endregion
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(float)));
@@ -608,7 +231,7 @@ void ConfigPiece(int id, int row, int col, bool isBlack, Piece piece)
 {
 	LoadImage(id, isBlack, row, col, piece);
 
-	GameObject sprite = isBlack ? blackSprites.back() : whiteSprites.back();
+	GameObject& sprite = isBlack ? blackSprites.back() : whiteSprites.back();
 
 	DefineGeometry(id, isBlack ? blackSprites.back() : whiteSprites.back());
 
@@ -1172,16 +795,24 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 	}
 }
 
-void SetFirst(int id)
+void SetValues(int id, int r, int c)
 {
 	for each (GameObject ws in whiteSprites)
 	{
-
+		if (ws.id == id)
+		{
+			ws.setCurrentCol(c);
+			ws.setCurrentRow(r);
+		}
 	}
 
 	for each (GameObject bs in whiteSprites)
 	{
-
+		if (bs.id == id)
+		{
+			bs.setCurrentCol(c);
+			bs.setCurrentRow(r);
+		}
 	}
 }
 
@@ -1223,7 +854,7 @@ void MouseMap(double xPos, double yPos) {
 
 			if (matrixColors[rowClick][columnClick].idPiece != matrixColors[lastSelectedRow][lastSelectedColumn].idPiece)
 			{
-				SetFirst(piece.id);
+				SetValues(piece.id, rowClick, columnClick);
 
 				//piece.setIsFirstMove(false);
 				matrixColors[rowClick][columnClick].idPiece = matrixColors[lastSelectedRow][lastSelectedColumn].idPiece;
@@ -1455,14 +1086,14 @@ int main() {
 		unsigned int transformloc = glGetUniformLocation(textureShader_programme, "matrix");
 		glUniformMatrix4fv(transformloc, 1, GL_FALSE, glm::value_ptr(matrix));
 
-		//for each (GameObject bs in blackSprites)
-		//{
-		//	DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, bs.vao, bs.tid, matrix, bs, transformloc);
-		//}
+		for each (GameObject bs in blackSprites)
+		{
+			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, matrix, bs, transformloc);
+		}
 
 		for each (GameObject ws in whiteSprites)
 		{
-		DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, whiteSprites[0].vao, whiteSprites[0].tid, matrix, whiteSprites[0], transformloc);
+			DefineOffsetAndRender(textureShader_programme, 0.0f, 0.0f, 0.51f, matrix, ws, transformloc);
 		}
 
 		// Desenha o diamond

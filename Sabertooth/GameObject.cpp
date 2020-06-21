@@ -5,13 +5,15 @@ GameObject::GameObject()
 
 }
 
-GameObject::GameObject(int id, bool isBlack, GLuint tid, Piece piece, vector<Movement>movements)
+GameObject::GameObject(int id, bool isBlack, GLuint tid, Piece piece, vector<Movement>movements, int row, int col)
 {
 	setId(id);
 	setTid(tid);
 	setPiece(piece);
 	setMovements(movements);
 	setColor(isBlack ? Color::Black : Color::White);
+	setCurrentCol(col);
+	setCurrentRow(row);
 	this->isFirstMove = true;
 }
 
@@ -43,4 +45,14 @@ void GameObject::setMovements(vector<Movement>value)
 void GameObject::setColor(Color color)
 {
 	this->color = color;
+}
+
+void GameObject::setCurrentCol(int value)
+{
+	this->currentCol = value;
+}
+
+void GameObject::setCurrentRow(int value)
+{
+	this->currentRow = value;
 }
