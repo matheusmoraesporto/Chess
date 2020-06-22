@@ -24,9 +24,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Layer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameObject.h">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -55,9 +52,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Layer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="main.h">
       <Filter>Header Files</Filter>
     </ClInclude>

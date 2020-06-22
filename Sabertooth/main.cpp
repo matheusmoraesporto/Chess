@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include "Tile.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -51,17 +52,14 @@ bool someoneWin;
 
 int ConnectVertex(const char* v_shader, const char* f_shader)
 {
-	// identifica vs e o associa com vertex_shader
 	int vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, &v_shader, NULL);
 	glCompileShader(vs);
 
-	// identifica fs e o associa com fragment_shader
 	int fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &f_shader, NULL);
 	glCompileShader(fs);
 
-	// identifica do programa, adiciona partes e faz "linkagem"
 	int shader_programme = glCreateProgram();
 	glAttachShader(shader_programme, fs);
 	glAttachShader(shader_programme, vs);
@@ -76,8 +74,6 @@ int ConnectVertex(const char* v_shader, const char* f_shader)
 void LoadImage(int id, bool isBlack, int row, int col, Piece piece)
 {
 	const char* img = "";
-	float taxaIncremento = 0;
-	float valueZ = 0;
 	vector<Movement> pieceMovement;
 
 	switch (piece)
@@ -145,6 +141,7 @@ void LoadImage(int id, bool isBlack, int row, int col, Piece piece)
 	}
 }
 
+// Cálcuo da posição do tile, também utilizado para posicionar as sprites no tabuleiro
 void DiamondDrawCalculation(float& x, float& y, int row, int col)
 {
 	x = row * (TILE_WIDTH / 2.0f) + col * (TILE_WIDTH / 2.0f);
@@ -187,7 +184,9 @@ void DefineOffsetAndRender(int sp, float offsetx, float offsety, float z, glm::m
 void DefineGeometry(int id, GameObject& go)
 {
 	GLuint VAO, VBO;
+
 	glGenVertexArrays(1, &VAO);
+
 	glGenBuffers(1, &VBO);
 
 	glBindVertexArray(VAO);
@@ -196,25 +195,27 @@ void DefineGeometry(int id, GameObject& go)
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	// White rook
 	GLfloat vertices[] = {
-		// positions			  // texture coords
-		0.0f, 40.0f, 	  1.0, 1.0f,
-		0.0f, 0.0f, 	  1.0f, 0.0f,
-		30.0f, 40.0f, 	  0.0f, 1.0f,
+		// positions	// texture coords
+		0.0f, 40.0f, 	1.0, 1.0f,
+		0.0f, 0.0f, 	1.0f, 0.0f,
+		30.0f, 40.0f, 	0.0f, 1.0f,
 
-		30.0f, 40.0f, 	  0.0, 1.0f,
-		0.0f, 0.0f, 	  1.0f, 0.0f,
-		30.0f, 0.0f, 	  0.0f, 0.0f,
+		30.0f, 40.0f, 	0.0, 1.0f,
+		0.0f, 0.0f, 	1.0f, 0.0f,
+		30.0f, 0.0f, 	0.0f, 0.0f,
 	};
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(float)));
 
 	glEnableVertexAttribArray(0);
+
 	glEnableVertexAttribArray(1);
+
 	glBindVertexArray(0);
 }
 
@@ -227,8 +228,7 @@ void ConfigPiece(int id, int row, int col, bool isBlack, Piece piece)
 
 	DefineGeometry(id, isBlack ? blackSprites.back() : whiteSprites.back());
 
-	glBindVertexArray(sprite.vao);
-
+	// seta o id da peça no tile, para que seja utilizado na lógica do jogo
 	if (isBlack) {
 
 		matrixColors[row][col].setIdPiece(sprite.id);
@@ -291,9 +291,7 @@ void ConfigSprites()
 #pragma endregion
 
 #pragma region DiamondMap
-
-
-
+// Cria o diamond map
 void CreateMatrixColors()
 {
 	int idTile = 1;
@@ -354,37 +352,7 @@ void DiamondClickCalculation(float xPos, float yPos, int& row, int& col) {
 	col = (int)columnClick;
 }
 
-bool TestPointCollision(float RefenceX, float RefenceY, float Bx, float By, float Cx, float Cy, float Px, float Py) {
-	float ABx = Bx - RefenceX;
-	float ABy = By - RefenceY;
-	float ABmodule = sqrt(pow(ABx, 2) + pow(ABy, 2));
-
-	float normalABx = ABx / ABmodule;
-	float normalABy = ABy / ABmodule;
-
-	float ACx = Cx - RefenceX;
-	float ACy = Cy - RefenceY;
-	float ACmodule = sqrt(pow(ACx, 2) + pow(ACy, 2));
-
-	float normalACx = ACx / ACmodule;
-	float normalACy = ACy / ACmodule;
-
-	float APx = Px - RefenceX;
-	float APy = Py - RefenceY;
-	float APmodule = sqrt(pow(APx, 2) + pow(APy, 2));
-
-	float normalAPx = APx / APmodule;
-	float normalAPy = APy / APmodule;
-
-	float theta = acos(normalABx * normalAPx + normalABy * normalAPy);
-	float alpha = acos(normalABx * normalACx + normalABy * normalACy);
-	float betha = acos(normalACx * normalAPx + normalACy * normalAPy);
-
-	bool collide = 0.001 > abs(alpha - (theta + betha));
-	return collide;
-}
-
-GameObject GetPiece(int id, bool setTranslate = false)
+GameObject GetPiece(int id)
 {
 	GameObject retorno;
 
@@ -392,13 +360,6 @@ GameObject GetPiece(int id, bool setTranslate = false)
 	{
 		if (white.id == id)
 		{
-			retorno = white;
-
-			if (setTranslate)
-			{
-				white.translate = true;
-			}
-
 			return white;
 		}
 	}
@@ -409,13 +370,6 @@ GameObject GetPiece(int id, bool setTranslate = false)
 		{
 			if (black.id == id)
 			{
-				retorno = black;
-
-				if (setTranslate)
-				{
-					black.translate = true;
-				}
-
 				return black;
 			}
 		}
@@ -424,6 +378,7 @@ GameObject GetPiece(int id, bool setTranslate = false)
 	return retorno;
 }
 
+// adiciona as posições que o player pode jogar
 void AddSelectedPosition(int r, int c)
 {
 	std::pair<int, int> p = make_pair(r, c);
@@ -464,7 +419,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 				}
 
 				if (rowClick + 1 < NUM_ROWS
-					&& columnClick - 1 > 0
+					&& columnClick - 1 >= 0
 					&& matrixColors[rowClick + 1][columnClick - 1].idPiece > 0
 					&& GetPiece(matrixColors[rowClick + 1][columnClick - 1].idPiece).color != piece.color)
 				{
@@ -655,7 +610,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 				moveSouth = piece.isFirstMove ? 2 : 1;
 
 				// Regra para ataque do pião
-				if (rowClick - 1 > 0
+				if (rowClick - 1 >= 0
 					&& columnClick + 1 < NUM_COLS
 					&& matrixColors[rowClick - 1][columnClick + 1].idPiece > 0
 					&& GetPiece(matrixColors[rowClick - 1][columnClick + 1].idPiece).color != piece.color)
@@ -663,7 +618,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 					markTile(rowClick - 1, columnClick + 1, true, true);
 				}
 
-				if (rowClick - 1 > 0
+				if (rowClick - 1 >= 0
 					&& columnClick - 1 >= 0
 					&& matrixColors[rowClick - 1][columnClick - 1].idPiece > 0
 					&& GetPiece(matrixColors[rowClick - 1][columnClick - 1].idPiece).color != piece.color)
@@ -703,7 +658,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 
 			if (piece.piece == Piece::King)
 			{
-				moveSoutheast = 2;
+				moveSoutheast = 1;
 			}
 
 			for (size_t i = 1; i <= moveSoutheast; i++)
@@ -732,7 +687,7 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 
 			if (piece.piece == Piece::King)
 			{
-				moveSouthwest = 2;
+				moveSouthwest = 1;
 			}
 
 			for (size_t i = 1; i <= moveSouthwest; i++)
@@ -787,6 +742,21 @@ void markMovements(int rowClick, int columnClick, GameObject piece)
 	}
 }
 
+int GetIndex(int id, vector<GameObject> list)
+{
+	int index = -1;
+
+	for (int i = 0; i < list.size(); i++)
+	{
+		if (list[i].id == id)
+		{
+			return i;
+		}
+	}
+
+	return index;
+}
+
 void MouseMap(double xPos, double yPos) {
 
 	int rowClick, columnClick;
@@ -799,69 +769,89 @@ void MouseMap(double xPos, double yPos) {
 
 	Tile tile = matrixColors[rowClick][columnClick];
 
-	if (TestPointCollision(tile.Ax, tile.Ay, tile.Bx, tile.By, tile.Cx, tile.Cy, xPos, yPos))
+	// Verifica se for desmarcado, para poder desmarcar as possíveis jogadas
+	if (matrixColors[rowClick][columnClick].canPlay)
 	{
-		// Verifica se for desmarcado, para poder desmarcar as possíveis jogadas
-		if (matrixColors[rowClick][columnClick].canPlay)
+		GameObject& piece = GetPiece(matrixColors[lastSelectedRow][lastSelectedColumn].idPiece);
+
+		if (!tile.isSelected)
 		{
-			GameObject& piece = GetPiece(matrixColors[lastSelectedRow][lastSelectedColumn].idPiece, true);
+			canPlayBlack = canPlayWhite;
+			canPlayWhite = !canPlayBlack;
+		}
 
-			if (!tile.isSelected)
+		matrixColors[lastSelectedRow][lastSelectedColumn].isSelected = false;
+
+		for each (pair<int, int> pos in selectedPositions)
+		{
+			markTile(pos.first, pos.second, false, false);
+		}
+
+		selectedPositions.clear();
+
+		if (matrixColors[rowClick][columnClick].idPiece != matrixColors[lastSelectedRow][lastSelectedColumn].idPiece)
+		{
+			GameObject oldPiece = GetPiece(matrixColors[rowClick][columnClick].idPiece);
+
+			someoneWin = oldPiece.piece == Piece::King;
+
+			if (matrixColors[rowClick][columnClick].idPiece > 0)
 			{
-				canPlayBlack = canPlayWhite;
-				canPlayWhite = !canPlayBlack;
-			}
-
-			matrixColors[lastSelectedRow][lastSelectedColumn].isSelected = false;
-
-			for each (pair<int, int> pos in selectedPositions)
-			{
-				markTile(pos.first, pos.second, false, false);
-			}
-
-			selectedPositions.clear();
-
-			if (matrixColors[rowClick][columnClick].idPiece != matrixColors[lastSelectedRow][lastSelectedColumn].idPiece)
-			{
-				someoneWin = GetPiece(matrixColors[rowClick][columnClick].idPiece).piece == Piece::King;
-
-				matrixColors[rowClick][columnClick].idPiece = matrixColors[lastSelectedRow][lastSelectedColumn].idPiece;
-				matrixColors[lastSelectedRow][lastSelectedColumn].idPiece = 0;
-
-
 				if (piece.color == Color::White)
 				{
-					whiteSprites[piece.id - 1].currentCol = columnClick;
-					whiteSprites[piece.id - 1].currentRow = rowClick;
-					whiteSprites[piece.id - 1].isFirstMove = false;
+					int index = GetIndex(oldPiece.id, blackSprites);
+
+					blackSprites.erase(blackSprites.begin() + index, blackSprites.begin() + index + 1);
 				}
-				else
+				else if (piece.color == Color::Black)
 				{
-					blackSprites[piece.id - 17].currentCol = columnClick;
-					blackSprites[piece.id - 17].currentRow = rowClick;
-					blackSprites[piece.id - 17].isFirstMove = false;
+					int index = GetIndex(oldPiece.id, whiteSprites);
+
+					whiteSprites.erase(whiteSprites.begin() + index, whiteSprites.begin() + index + 1);
 				}
 			}
 
-		}
-		else if (selectedPositions.empty() && tile.idPiece > 0) // Já terá adicionado o tile selecionado, então não estará vazio mais, apenas terá o tile selecionado
-		{
-			GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece, true);
+			matrixColors[rowClick][columnClick].idPiece = matrixColors[lastSelectedRow][lastSelectedColumn].idPiece;
+			matrixColors[lastSelectedRow][lastSelectedColumn].idPiece = 0;
 
-			bool playBlack = piece.color == Color::Black && canPlayBlack;
-			bool playWhite = piece.color == Color::White && canPlayWhite;
 
-			if (playBlack || playWhite)
+			if (piece.color == Color::White)
 			{
-				lastSelectedColumn = columnClick;
-				lastSelectedRow = rowClick;
+				int i = GetIndex(piece.id, whiteSprites);
 
-				matrixColors[rowClick][columnClick].isSelected = true;
-
-				markTile(rowClick, columnClick, true, true);
-
-				markMovements(rowClick, columnClick, piece);
+				whiteSprites[i].currentCol = columnClick;
+				whiteSprites[i].currentRow = rowClick;
+				whiteSprites[i].isFirstMove = false;
 			}
+			else
+			{
+				int i = GetIndex(piece.id, blackSprites);
+
+				blackSprites[i].currentCol = columnClick;
+				blackSprites[i].currentRow = rowClick;
+				blackSprites[i].isFirstMove = false;
+			}
+		}
+
+	}
+	else if (selectedPositions.empty() && tile.idPiece > 0) // Já terá adicionado o tile selecionado, então não estará vazio mais, apenas terá o tile selecionado
+	{
+		GameObject piece = GetPiece(matrixColors[rowClick][columnClick].idPiece);
+
+		bool playBlack = piece.color == Color::Black && canPlayBlack;
+		bool playWhite = piece.color == Color::White && canPlayWhite;
+
+		if (playBlack || playWhite)
+		{
+			lastSelectedColumn = columnClick;
+
+			lastSelectedRow = rowClick;
+
+			matrixColors[rowClick][columnClick].isSelected = true;
+
+			markTile(rowClick, columnClick, true, true);
+
+			markMovements(rowClick, columnClick, piece);
 		}
 	}
 }
@@ -899,7 +889,6 @@ int main() {
 	glfwMakeContextCurrent(window);
 	glewExperimental = GL_TRUE;
 	glewInit();
-
 
 	const char* map_vertex_shader =
 		"#version 410\n"
@@ -965,12 +954,6 @@ int main() {
 		0.0f, TILE_HEIGHT / 2.0f, 0.0f			// LEFT
 	};
 
-	unsigned int mapIndices[] =
-	{
-		0, 1, 2,   // first triangle
-		0, 3, 2    // second triangle
-	};
-
 	// Vértice do diamondMap
 	GLfloat textureVertices[] =
 	{
@@ -981,7 +964,7 @@ int main() {
 		0.0f, TILE_HEIGHT / 2.0f, 0.0f,			0.0f, 0.0f 		// LEFT
 	};
 
-	unsigned int textureIndices[] =
+	unsigned int indices[] =
 	{
 		0, 1, 2,   // first triangle
 		0, 3, 2    // second triangle
@@ -998,7 +981,7 @@ int main() {
 	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), mapVertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mapEBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mapIndices), mapIndices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -1016,7 +999,7 @@ int main() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(textureVertices), textureVertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(textureIndices), textureIndices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(float)));
@@ -1041,7 +1024,6 @@ int main() {
 
 		// glm projecao
 		glm::mat4 projection = glm::ortho(0.0f, (float)WIDTH, (float)HEIGHT, 0.0f, -1.0f, 1.0f);
-
 
 		int screenWidth, screenHeight;
 		glfwGetWindowSize(window, &screenWidth, &screenHeight);
@@ -1069,8 +1051,8 @@ int main() {
 
 		// Desenha o diamond
 		glUseProgram(mapShader_programme);
-		glUniformMatrix4fv(glGetUniformLocation(mapShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(projection));
 
+		glUniformMatrix4fv(glGetUniformLocation(mapShader_programme, "proj"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		//Define VAO atual
 		glBindVertexArray(mapVAO);

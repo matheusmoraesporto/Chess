@@ -20,8 +20,8 @@ public:
 	void setColor(Color value);
 	void setCurrentRow(int value);
 	void setCurrentCol(int value);
-	int vao, id, tid, currentRow, currentCol, quantidadeMov;
-	bool isFirstMove, translate;
+	int vao, id, tid, currentRow, currentCol;
+	bool isFirstMove;
 	Piece piece;
 	vector<Movement>movements;
 	Color color;

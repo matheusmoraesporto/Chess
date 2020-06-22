@@ -3,7 +3,7 @@
 class Tile {
 public:
 	int id, idPiece;
-	bool isVisible, isSelected, canPlay;
+	bool isSelected, canPlay;
 	//left point
 	float Ax, Ay;
 	//top point

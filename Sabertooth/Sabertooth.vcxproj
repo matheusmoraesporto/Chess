@@ -128,7 +128,6 @@
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameObject.h" />
-    <ClCompile Include="Layer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Movement.cpp" />
     <ClCompile Include="Piece.cpp" />
@@ -139,7 +138,6 @@
     <None Include="Shaders\Core\core.vert" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Layer.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Tile.h" />
   </ItemGroup>

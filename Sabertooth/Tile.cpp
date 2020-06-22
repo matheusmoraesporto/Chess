@@ -8,7 +8,6 @@ Tile::Tile(int id, float x0, float y0, float th, float tw)
 {
 	this->id = id;
 	this->idPiece = 0;
-	isVisible = true;
 	isSelected = false;
 	canPlay = false;
 
